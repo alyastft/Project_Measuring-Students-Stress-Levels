@@ -5,22 +5,25 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pickle
 
-# Load model
-with open("stacking_classifier_model.pkl", "rb") as f:
-    model = pickle.load(f)
-
-# Load data
-@st.cache_data
-def load_data():
-    return pd.read_pickle("students_stress_data.pkl")
-
+# Fungsi untuk load model
 @st.cache_resource
 def load_model():
     with open("stacking_classifier_model.pkl", "rb") as f:
         return pickle.load(f)
 
-data = load_data()
-model = load_model()
+# Fungsi untuk load data dummy (karena tidak pakai .csv/.pkl)
+@st.cache_data
+def load_data():
+    data = {
+        "Study Hours": [4, 6, 2, 5, 3],
+        "Sleep Duration": [7, 6, 8, 5, 9],
+        "Physical Activity": [3, 1, 4, 2, 5],
+        "Social Hours": [2, 1, 5, 3, 4],
+        "Extracurricular Activities": [1, 0, 1, 0, 1],
+        "GPA": [3.2, 3.8, 2.7, 3.5, 3.0],
+        "Stress Level": ["Medium", "High", "Low", "Medium", "Low"]
+    }
+    return pd.DataFrame(data)
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
