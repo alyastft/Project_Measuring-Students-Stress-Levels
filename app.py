@@ -45,7 +45,6 @@ if page == "Data Description":
     Target variabel adalah **Stress Level**.
     """)
 
-     # Panggil data
     data = load_data()
 
     st.subheader("Data Preview")
