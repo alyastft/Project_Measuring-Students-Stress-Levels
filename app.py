@@ -6,13 +6,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pickle
 
-# Fungsi untuk load model
+# Load model
 @st.cache_resource
 def load_model():
     with open("stacking_classifier_model.pkl", "rb") as f:
         return pickle.load(f)
 
-# Fungsi untuk load data dummy (karena tidak pakai .csv/.pkl)
+# Load data dummy
 @st.cache_data
 def load_data(n=300):
     np.random.seed(42)
@@ -26,13 +26,21 @@ def load_data(n=300):
     }
     return pd.DataFrame(data)
 
-# Sidebar for navigation
+# Load model and data
+model = load_model()
+data = load_data()
+
+# Prediksi stress level untuk seluruh data
+data["Stress_Level"] = model.predict(data)
+
+# Sidebar navigation
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["Data Description", "Prediction", "About"])
 
-# Page 1: Data Description
+# Halaman 1: Data Description
 if page == "Data Description":
     st.title("Data Description")
+
     st.write("""
     Dataset ini berisi informasi tentang tingkat stres mahasiswa yang diukur berdasarkan:
     - **Study Hours**
@@ -41,22 +49,46 @@ if page == "Data Description":
     - **Social Hours**
     - **Extracurricular Activities**
     - **GPA**
-    
-    Target variabel adalah **Stress Level**.
+
+    Target variabel adalah **Stress Level** (hasil prediksi model).
     """)
 
-    data = load_data()
-
     st.subheader("Data Preview")
-    st.dataframe(data)
+    st.dataframe(data.head(20))
 
-    st.subheader("Stress Level Distribution")
+    st.subheader("Distribusi Stress Level (Prediksi)")
     fig, ax = plt.subplots()
-    sns.countplot(x="Stress_Level", data=data, ax=ax)
+    sns.countplot(y="Stress_Level", data=data, palette="Set2", ax=ax)
+    ax.set_xlabel("Count")
+    ax.set_ylabel("Predicted Stress Levels")
+    ax.set_title("Distribution of Predicted Stress Levels")
     st.pyplot(fig)
 
-    
-# Page 2: Prediction
+    st.subheader("Feature Distributions (Histogram)")
+    features = [
+        "Study Hours",
+        "Sleep Duration",
+        "Physical Activity",
+        "Social Hours",
+        "Extracurricular Activities",
+        "GPA"
+    ]
+    for feature in features:
+        st.write(f"### {feature}")
+        fig, ax = plt.subplots()
+        sns.histplot(data[feature], kde=True, bins=20, ax=ax, color='skyblue')
+        ax.set_xlabel(feature)
+        ax.set_ylabel("Frequency")
+        st.pyplot(fig)
+
+    st.subheader("Feature vs Stress Level (Boxplot)")
+    for feature in features:
+        st.write(f"### {feature} by Stress Level")
+        fig, ax = plt.subplots()
+        sns.boxplot(x="Stress_Level", y=feature, data=data, palette="pastel", ax=ax)
+        st.pyplot(fig)
+
+# Halaman 2: Prediction
 elif page == "Prediction":
     st.title("Stress Level Prediction")
 
@@ -84,18 +116,15 @@ elif page == "Prediction":
         prediction = model.predict(input_data)[0]
         st.success(f"Predicted Stress Level: **{prediction}**")
 
-# Page 3: About
+# Halaman 3: About
 elif page == "About":
     st.title("About This Model")
-
     st.write("""
-    Model ini menggunakan pendekatan **Stacking Classifier** untuk memprediksi tingkat stres mahasiswa. 
-    Stacking adalah metode ensemble machine learning yang menggabungkan beberapa model dasar (seperti Random Forest, Logistic Regression, dan SVM) dan memanfaatkan model meta untuk meningkatkan performa prediksi.
+    Model ini menggunakan pendekatan **Stacking Classifier** untuk memprediksi tingkat stres mahasiswa.
 
     - **Model Base**: Kombinasi dari beberapa algoritma
     - **Model Meta**: Menggabungkan output dari model base
     - **Kelebihan**: Meningkatkan akurasi dan generalisasi prediksi
+
+    Model dilatih dengan data sintetis berdasarkan fitur-fitur seperti durasi belajar, aktivitas fisik, jam tidur, dan GPA.
     """)
-
-    st.markdown("Model ini dilatih menggunakan data historis mahasiswa dan faktor-faktor penentu stres seperti durasi belajar, tidur, aktivitas fisik, dan GPA.")
-
