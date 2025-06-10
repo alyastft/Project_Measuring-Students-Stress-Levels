@@ -23,7 +23,7 @@ def load_data(n=300):
         "Social Hours": np.random.randint(0, 6, size=n),
         "Extracurricular Activities": np.random.randint(0, 2, size=n),
         "GPA": np.round(np.random.uniform(2.0, 4.0, size=n), 2),
-        "Level": np.random.randint(0, 2, size=n),
+        "Level": np.random.randint(0, 3, size=n),
     }
     return pd.DataFrame(data)
 
