@@ -45,7 +45,7 @@ if page == "Data Description":
     """)
 
     st.subheader("Data Preview")
-    st.dataframe(data.head())
+    st.dataframe(data)
 
     st.subheader("Stress Level Distribution")
     fig, ax = plt.subplots()
