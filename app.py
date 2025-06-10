@@ -44,6 +44,9 @@ if page == "Data Description":
     Target variabel adalah **Stress Level**.
     """)
 
+     # Panggil data
+    data = load_data()
+
     st.subheader("Data Preview")
     st.dataframe(data)
 
@@ -51,7 +54,7 @@ if page == "Data Description":
     fig, ax = plt.subplots()
     sns.countplot(x="Stress Level", data=data, ax=ax)
     st.pyplot(fig)
-
+    
 # Page 2: Prediction
 elif page == "Prediction":
     st.title("Stress Level Prediction")
