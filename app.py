@@ -52,8 +52,9 @@ if page == "Data Description":
 
     st.subheader("Stress Level Distribution")
     fig, ax = plt.subplots()
-    sns.countplot(x="Stress Level", data=data, ax=ax)
+    sns.countplot(x="Stress_Level", data=data, ax=ax)
     st.pyplot(fig)
+
     
 # Page 2: Prediction
 elif page == "Prediction":
