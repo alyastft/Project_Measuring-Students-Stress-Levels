@@ -6,13 +6,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pickle
 
-# Load model
+# Fungsi untuk load model
 @st.cache_resource
 def load_model():
     with open("stacking_classifier_model.pkl", "rb") as f:
         return pickle.load(f)
 
-# Load data dummy
+# Fungsi untuk load data dummy (karena tidak pakai .csv/.pkl)
 @st.cache_data
 def load_data(n=300):
     np.random.seed(42)
@@ -23,24 +23,17 @@ def load_data(n=300):
         "Social Hours": np.random.randint(0, 6, size=n),
         "Extracurricular Activities": np.random.randint(0, 2, size=n),
         "GPA": np.round(np.random.uniform(2.0, 4.0, size=n), 2),
+        "Level": np.random.randint(0, 2, size=n),
     }
     return pd.DataFrame(data)
 
-# Load model and data
-model = load_model()
-data = load_data()
-
-# Prediksi stress level untuk seluruh data
-data["Stress_Level"] = model.predict(data)
-
-# Sidebar navigation
+# Sidebar for navigation
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["Data Description", "Prediction", "About"])
 
-# Halaman 1: Data Description
+# Page 1: Data Description
 if page == "Data Description":
     st.title("Data Description")
-
     st.write("""
     Dataset ini berisi informasi tentang tingkat stres mahasiswa yang diukur berdasarkan:
     - **Study Hours**
@@ -49,46 +42,17 @@ if page == "Data Description":
     - **Social Hours**
     - **Extracurricular Activities**
     - **GPA**
-
-    Target variabel adalah **Stress Level** (hasil prediksi model).
+    
+    Target variabel adalah **Stress Level**.
     """)
 
+     # Panggil data
+    data = load_data()
+
     st.subheader("Data Preview")
-    st.dataframe(data.head(20))
-
-    st.subheader("Distribusi Stress Level (Prediksi)")
-    fig, ax = plt.subplots()
-    sns.countplot(y="Stress_Level", data=data, palette="Set2", ax=ax)
-    ax.set_xlabel("Count")
-    ax.set_ylabel("Predicted Stress Levels")
-    ax.set_title("Distribution of Predicted Stress Levels")
-    st.pyplot(fig)
-
-    st.subheader("Feature Distributions (Histogram)")
-    features = [
-        "Study Hours",
-        "Sleep Duration",
-        "Physical Activity",
-        "Social Hours",
-        "Extracurricular Activities",
-        "GPA"
-    ]
-    for feature in features:
-        st.write(f"### {feature}")
-        fig, ax = plt.subplots()
-        sns.histplot(data[feature], kde=True, bins=20, ax=ax, color='skyblue')
-        ax.set_xlabel(feature)
-        ax.set_ylabel("Frequency")
-        st.pyplot(fig)
-
-    st.subheader("Feature vs Stress Level (Boxplot)")
-    for feature in features:
-        st.write(f"### {feature} by Stress Level")
-        fig, ax = plt.subplots()
-        sns.boxplot(x="Stress_Level", y=feature, data=data, palette="pastel", ax=ax)
-        st.pyplot(fig)
-
-# Halaman 2: Prediction
+    st.dataframe(data)
+    
+# Page 2: Prediction
 elif page == "Prediction":
     st.title("Stress Level Prediction")
 
@@ -116,15 +80,17 @@ elif page == "Prediction":
         prediction = model.predict(input_data)[0]
         st.success(f"Predicted Stress Level: **{prediction}**")
 
-# Halaman 3: About
+# Page 3: About
 elif page == "About":
     st.title("About This Model")
+
     st.write("""
-    Model ini menggunakan pendekatan **Stacking Classifier** untuk memprediksi tingkat stres mahasiswa.
+    Model ini menggunakan pendekatan **Stacking Classifier** untuk memprediksi tingkat stres mahasiswa. 
+    Stacking adalah metode ensemble machine learning yang menggabungkan beberapa model dasar (seperti Random Forest, Logistic Regression, dan SVM) dan memanfaatkan model meta untuk meningkatkan performa prediksi.
 
     - **Model Base**: Kombinasi dari beberapa algoritma
     - **Model Meta**: Menggabungkan output dari model base
     - **Kelebihan**: Meningkatkan akurasi dan generalisasi prediksi
-
-    Model dilatih dengan data sintetis berdasarkan fitur-fitur seperti durasi belajar, aktivitas fisik, jam tidur, dan GPA.
     """)
+
+    st.markdown("Model ini dilatih menggunakan data historis mahasiswa dan faktor-faktor penentu stres seperti durasi belajar, tidur, aktivitas fisik, dan GPA.")
