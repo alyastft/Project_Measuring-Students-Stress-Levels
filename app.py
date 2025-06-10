@@ -12,9 +12,15 @@ with open("stacking_classifier_model.pkl", "rb") as f:
 # Load data
 @st.cache_data
 def load_data():
-    return pd.read_csv("students_stress_data.csv")
+    return pd.read_pickle("students_stress_data.pkl")
+
+@st.cache_resource
+def load_model():
+    with open("stacking_classifier_model.pkl", "rb") as f:
+        return pickle.load(f)
 
 data = load_data()
+model = load_model()
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
