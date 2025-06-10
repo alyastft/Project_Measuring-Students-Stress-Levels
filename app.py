@@ -13,15 +13,15 @@ def load_model():
 
 # Fungsi untuk load data dummy (karena tidak pakai .csv/.pkl)
 @st.cache_data
-def load_data():
+def load_data(n=300):
+    np.random.seed(42)
     data = {
-        "Study Hours": [4, 6, 2, 5, 3],
-        "Sleep Duration": [7, 6, 8, 5, 9],
-        "Physical Activity": [3, 1, 4, 2, 5],
-        "Social Hours": [2, 1, 5, 3, 4],
-        "Extracurricular Activities": [1, 0, 1, 0, 1],
-        "GPA": [3.2, 3.8, 2.7, 3.5, 3.0],
-        "Stress Level": ["Medium", "High", "Low", "Medium", "Low"]
+        "Study Hours": np.random.randint(0, 10, size=n),
+        "Sleep Duration": np.random.randint(4, 10, size=n),
+        "Physical Activity": np.random.randint(0, 5, size=n),
+        "Social Hours": np.random.randint(0, 6, size=n),
+        "Extracurricular Activities": np.random.randint(0, 2, size=n),
+        "GPA": np.round(np.random.uniform(2.0, 4.0, size=n), 2),
     }
     return pd.DataFrame(data)
 
