@@ -32,6 +32,9 @@ def load_data(n=300):
     df["Level"] = np.random.randint(0, 3, size=n)
     return df
 
+# Mapping prediksi ke label
+    label_mapping = {0: "Low", 1: "Moderate", 2: "High"}
+
 # Fungsi untuk plotting Confusion Matrix
 def plot_confusion_matrix(y_true, y_pred, classes):
     cm = confusion_matrix(y_true, y_pred)
@@ -50,8 +53,8 @@ def plot_roc_curve(y_true, y_score, classes):
     for i in range(n_classes):
         fpr, tpr, _ = roc_curve(y_test_bin[:, i], y_score[:, i])
         roc_auc = auc(fpr, tpr)
-        ax.plot(fpr, tpr, lw=2, label=f'Class {classes[i]} (AUC = {roc_auc:.2f})')
-
+        ax.plot(fpr, tpr, lw=2, label=f'{label_mapping.get(classes[i], classes[i])} (AUC = {roc_auc:.2f})')
+        
     ax.plot([0,1], [0,1], 'k--', lw=2)
     ax.set_xlim([0,1])
     ax.set_ylim([0,1.05])
@@ -70,7 +73,7 @@ def plot_precision_recall_curve(y_true, y_score, classes):
     for i in range(n_classes):
         precision, recall, _ = precision_recall_curve(y_test_bin[:, i], y_score[:, i])
         pr_auc = auc(recall, precision)
-        ax.plot(recall, precision, lw=2, label=f'Class {classes[i]} (AUC = {pr_auc:.2f})')
+        ax.plot(recall, precision, lw=2, label=f'{label_mapping.get(classes[i], classes[i])} (AUC = {pr_auc:.2f})')
 
     ax.set_xlim([0,1])
     ax.set_ylim([0,1.05])
@@ -175,10 +178,12 @@ elif page == "Prediction":
     if st.button("Prediksi"):
         try:
             prediction = model.predict(input_data)[0]
+            predicted_label = label_mapping.get(prediction, "Unknown")
+
             if "nama" in st.session_state:
-                st.success(f"{st.session_state['nama']}, tingkat stres kamu diprediksi: {prediction}")
+                st.success(f"{st.session_state['nama']}, tingkat stres kamu diprediksi: **{predicted_label}**")
             else:
-                st.success(f"Tingkat stres diprediksi: {prediction}")
+                st.success(f"Tingkat stres diprediksi: **{predicted_label}**")
 
             # Evaluasi model
             st.markdown("---")
@@ -187,7 +192,9 @@ elif page == "Prediction":
             data = load_data()
             X = data.drop(columns=["Level"])
             y = data["Level"]
-            classes = np.unique(y)
+            classes = [0, 1, 2]
+            class_labels = ["Low", "Moderate", "High"]
+
 
             expected_columns = [
                 "Study_Hours_Per_Day",
@@ -204,7 +211,7 @@ elif page == "Prediction":
             y_score = model.predict_proba(X)
 
             st.markdown("Confusion Matrix")
-            fig_cm = plot_confusion_matrix(y, y_pred, classes)
+            fig_cm = plot_confusion_matrix(y, y_pred, class_labels)
             st.pyplot(fig_cm)
 
             st.markdown("ROC Curve")
