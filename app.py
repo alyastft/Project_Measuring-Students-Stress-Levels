@@ -132,6 +132,25 @@ elif page == "Data Description":
     st.subheader("Class distribution")
     st.bar_chart(data["Level"].value_counts().reindex(["Low", "Moderate", "High"]))
 
+    # Pie Chart Distribusi Tingkat Stres
+    st.subheader("Distribusi Tingkat Stres (Pie Chart)")
+    stress_counts = data["Level"].value_counts().reindex(["Low", "Moderate", "High"])
+
+    fig, ax = plt.subplots()
+    colors = ["#66b3ff", "#ffcc99", "#ff9999"]  # Warna untuk Low, Moderate, High
+    ax.pie(
+        stress_counts,
+        labels=stress_counts.index,
+        autopct="%1.1f%%",
+        startangle=140,
+        colors=colors,
+        explode=(0.05, 0.05, 0.05),
+        shadow=True,
+    )
+    ax.set_title("Distribusi Level Stres Mahasiswa")
+    ax.axis("equal")  # Agar lingkarannya proporsional
+    st.pyplot(fig)
+
 # ===================== Halaman Prediction =====================
 elif page == "Prediction":
     st.title("📈 Prediksi Tingkat Stres")
