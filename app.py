@@ -86,29 +86,29 @@ def plot_precision_recall_curve(y_true, y_score, classes):
 
 # Sidebar Navigation
 st.sidebar.title("Navigasi")
-page = st.sidebar.radio("Pilih Halaman", ["Identitas", "Data Description", "Prediction", "About"])
+page = st.sidebar.selectbox(“Select Page”, [‘Identity’, “Data Description”, ‘Prediction’, “About Models”])
 
 # ===================== Halaman Identitas =====================
-if page == "Identitas":
-    st.title("👤 Halaman Identitas Pengguna")
+if page == "Identity":
+    st.title("👤 User Identity Page")
 
     # Input nama dan umur
-    nama = st.text_input("Masukkan Nama Anda:")
-    umur = st.number_input("Masukkan Umur Anda:", min_value=0, max_value=120, value=20)
+    nama = st.text_input("Input Your Name:")
+    umur = st.number_input("Input Your Age:", min_value=0, max_value=120, value=20)
 
     if nama.strip():
-        st.success(f"Halo {nama}, umur Anda {umur} tahun")
+        st.success(f"Hai {nama}, you're {umur} years old")
         # Simpan di session state agar bisa digunakan di halaman lain
         st.session_state["nama"] = nama
         st.session_state["umur"] = umur
     else:
-        st.warning("Silakan masukkan nama terlebih dahulu.")
+        st.warning("Please input the name first.")
 
 # ===================== Halaman Data Description =====================
 elif page == "Data Description":
-    st.title("📊 Deskripsi Data")
+    st.title("📊 Students' Stress Level Dataset Description")
     st.write("""
-    Dataset ini berisi informasi tentang tingkat stres mahasiswa yang diukur berdasarkan:
+    This dataset contains information about student stress levels as measured by:
     - Study Hours
     - Sleep Duration
     - Physical Activity
@@ -116,7 +116,7 @@ elif page == "Data Description":
     - Extracurricular Activities
     - GPA
     
-    Target variabel adalah Stress Level.
+    The target variable is Stress Level.
     """)
 
     data = load_data()
@@ -147,26 +147,55 @@ elif page == "Data Description":
         explode=(0.05, 0.05, 0.05),
         shadow=True,
     )
-    ax.set_title("Distribusi Level Stres Mahasiswa")
+    ax.set_title("Distribution of Students' Stress Level")
     ax.axis("equal")  # Agar lingkarannya proporsional
     st.pyplot(fig)
 
+    # Scatter Plot GPA vs Study Hours dengan warna berdasarkan Level
+    st.subheader("Scatter Plot: GPA vs Study Hours")
+    
+    # Map ulang Level untuk memastikan label sesuai
+    label_mapping = {0: "Low", 1: "Moderate", 2: "High"}
+    data["Level"] = data["Level"].map(label_mapping)
+    
+    fig_scatter, ax = plt.subplots()
+    colors = {"Low": "#66b3ff", "Moderate": "#ffcc99", "High": "#ff9999"}
+    
+    for level in ["Low", "Moderate", "High"]:
+        subset = data[data["Level"] == level]
+        ax.scatter(
+            subset["Study_Hours_Per_Day"],
+            subset["GPA"],
+            label=level,
+            alpha=0.7,
+            edgecolors='k',
+            s=80,
+            c=colors[level]
+        )
+    
+    ax.set_xlabel("Study Hours Per Day")
+    ax.set_ylabel("GPA")
+    ax.set_title("Relationship between Study Hours and GPA based on Stress Levels")
+    ax.legend(title="Stress Level")
+    st.pyplot(fig_scatter)
+
+
 # ===================== Halaman Prediction =====================
 elif page == "Prediction":
-    st.title("📈 Prediksi Tingkat Stres")
+    st.title("📈 Predicted Stress Level")
 
     if "nama" in st.session_state and "umur" in st.session_state:
-        st.info(f"Prediksi untuk: {st.session_state['nama']}, umur {st.session_state['umur']} tahun")
+        st.info(f"Prediction for: {st.session_state['nama']}, {st.session_state['umur']} years old")
     else:
-        st.warning("Silakan isi identitas terlebih dahulu di halaman Identitas.")
+        st.warning("Please fill in your identity first on the Identity page.")
 
-    st.write("Masukkan informasi berikut untuk memprediksi tingkat stres:")
+    st.write("Enter the following information to predict stress levels:")
 
     study_hours = st.slider("Study Hours per Day", 0, 12, 4)
     sleep_duration = st.slider("Sleep Duration per Day (hours)", 0, 12, 7)
     physical_activity = st.slider("Physical Activity (hours/week)", 0, 20, 3)
     social_hours = st.slider("Social Hours per Day", 0, 12, 2)
-    extracurricular = st.selectbox("Ikut Kegiatan Ekstrakurikuler?", ["Yes", "No"])
+    extracurricular = st.selectbox("Participate in extracurricular activities?", ["Yes", "No"])
     gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, value=3.0)
 
     # Konversi ekstrakurikuler ke binary
@@ -213,13 +242,13 @@ elif page == "Prediction":
             predicted_label = label_mapping.get(prediction, "Unknown")
 
             if "nama" in st.session_state:
-                st.success(f"{st.session_state['nama']}, tingkat stres kamu diprediksi: **{predicted_label}**")
+                st.success(f"{st.session_state['nama']}, your stress levels are predicted: **{predicted_label}**")
             else:
-                st.success(f"Tingkat stres diprediksi: **{predicted_label}**")
+                st.success(f"Stress level predicted: **{predicted_label}**")
 
             # Evaluasi model
             st.markdown("---")
-            st.subheader("Evaluasi Model dengan Data Dummy")
+            st.subheader("Evaluation of Models with Dummy Data")
 
             data = load_data()
             X = data.drop(columns=["Level"])
@@ -255,16 +284,16 @@ elif page == "Prediction":
             st.pyplot(fig_pr)
 
         except Exception as e:
-            st.error(f"Terjadi kesalahan saat prediksi: {str(e)}")
+            st.error(f"An error occurs during prediction: {str(e)}")
 
 # ===================== Halaman About =====================
-elif page == "About":
-    st.title("ℹ Tentang Model Ini")
+elif page == "About Models":
+    st.title("ℹ About This Model")
     st.write("""
-    Model ini menggunakan pendekatan Stacking Classifier untuk memprediksi tingkat stres mahasiswa. 
-    Stacking adalah metode ensemble machine learning yang menggabungkan beberapa model dasar dan meta untuk meningkatkan akurasi.
+    This model uses the Stacking Classifier approach to predict students' stress levels. 
+    Stacking is an ensemble machine learning method that combines multiple base and meta models to improve accuracy.
 
-    - Model Base: Kombinasi dari beberapa algoritma
-    - Model Meta: Menggabungkan output dari model base
-    - Kelebihan: Meningkatkan akurasi dan generalisasi
+    - Base Model: A combination of several algorithms
+    - Meta Model: Combining the outputs of the base models
+    - Pros: Improves accuracy and generalization
     """)
