@@ -129,13 +129,7 @@ elif page == "Data Description":
     st.dataframe(data)
 
     # Tambahkan visualisasi distribusi stress level
-    st.subheader("Distribusi Tingkat Stres")
-    fig, ax = plt.subplots()
-    sns.countplot(x="Level", data=data, order=["Low", "Moderate", "High"], palette="viridis")
-    ax.set_title("Distribusi Level Stres Mahasiswa")
-    ax.set_xlabel("Tingkat Stres")
-    ax.set_ylabel("Jumlah Mahasiswa")
-    st.pyplot(fig)
+    st.bar_chart(data["Level"].value_counts().reindex(["Low", "Moderate", "High"]))
 
 # ===================== Halaman Prediction =====================
 elif page == "Prediction":
