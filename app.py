@@ -5,16 +5,31 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pickle
 import os
+import requests
 
-# Load model
+# Load model dari lokal atau GitHub
 @st.cache_resource
 def load_model():
-    model_path = "/mnt/data/stacking_classifier_model.pkl"
-    if not os.path.exists(model_path):
-        st.error("❌ File model tidak ditemukan di /mnt/data/. Harap upload ulang.")
-        st.stop()
+    local_path = "/mnt/data/stacking_classifier_model.pkl"
+    github_url = "https://raw.githubusercontent.com/alyastft/Project_Measuring-Students-Stress-Levels/main/stacking_classifier_model.pkl"
+
+    if not os.path.exists(local_path):
+        st.warning("📥 Model tidak ditemukan secara lokal. Mengunduh dari GitHub...")
+        try:
+            response = requests.get(github_url)
+            if response.status_code == 200:
+                with open(local_path, "wb") as f:
+                    f.write(response.content)
+                st.success("✅ Model berhasil diunduh dari GitHub.")
+            else:
+                st.error("❌ Gagal mengunduh model dari GitHub.")
+                st.stop()
+        except Exception as e:
+            st.error(f"❌ Error saat mengunduh model: {e}")
+            st.stop()
+
     try:
-        with open(model_path, "rb") as f:
+        with open(local_path, "rb") as f:
             model = pickle.load(f)
         return model
     except Exception as e:
@@ -53,7 +68,6 @@ page = st.sidebar.selectbox("Go to", ["Data Description", "Prediction", "About"]
 if page == "Data Description":
     st.title("📊 Stress Analysis Dataset Description")
     st.write("Berikut adalah data simulasi mahasiswa beserta prediksi tingkat stres:")
-
     st.dataframe(data.head())
 
     st.subheader("Distribusi Stress Level")
