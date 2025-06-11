@@ -10,7 +10,7 @@ import requests
 # Load model dari lokal atau GitHub
 @st.cache_resource
 def load_model():
-    local_path = "/mnt/data/stacking_classifier_model.pkl"
+    local_path = "stacking_classifier_model.pkl"
     github_url = "https://raw.githubusercontent.com/alyastft/Project_Measuring-Students-Stress-Levels/main/stacking_classifier_model.pkl"
 
     if not os.path.exists(local_path):
