@@ -32,7 +32,7 @@ if page == "Data Description":
     Target variabel adalah **Stress Level**.
     """)
 
-    st.subheader("Data Preview")
+    st.write("Data Preview")
     st.dataframe(df)
     
 # Page 2: Prediction
