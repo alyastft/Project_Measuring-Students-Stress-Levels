@@ -7,12 +7,6 @@ import pickle
 from sklearn.metrics import confusion_matrix, roc_curve, auc, precision_recall_curve, ConfusionMatrixDisplay
 from sklearn.preprocessing import label_binarize
 
-# ==================== Fungsi Utama ====================
-
-# Mapping label angka ke kategori stres
-def map_stress_level(label):
-    return {0: "Low", 1: "Moderate", 2: "High"}.get(label, "Unknown")
-
 # Fungsi untuk load model
 @st.cache_resource
 def load_model():
@@ -26,16 +20,16 @@ model = load_model()
 def load_data(n=300):
     np.random.seed(42)
     data = {
-        "Study Hours": np.random.randint(0, 10, size=n),
-        "Sleep Duration": np.random.randint(4, 10, size=n),
-        "Physical Activity": np.random.randint(0, 5, size=n),
-        "Social Hours": np.random.randint(0, 6, size=n),
-        "Extracurricular Activities": np.random.randint(0, 2, size=n),
+        "Study_Hours_Per_Day": np.random.randint(0, 10, size=n),
+        "Sleep_Hours_Per_Day": np.random.randint(4, 10, size=n),
+        "Physical_Activity_Hours_Per_Day": np.random.randint(0, 5, size=n),
+        "Social_Hours_Per_Day": np.random.randint(0, 6, size=n),
+        "Extracurricular_Hours_Per_Day": np.random.randint(0, 2, size=n),
         "GPA": np.round(np.random.uniform(2.0, 4.0, size=n), 2),
     }
     df = pd.DataFrame(data)
-    df["Academic_Performance_Encoded"] = (df["GPA"]>=3.0).astype(int)
-    df["Level"] = np.random.randint(0, 3, size = n)
+    df["Academic_Performance_Encoded"] = (df["GPA"] >= 3.0).astype(int)
+    df["Level"] = np.random.randint(0, 3, size=n)
     return df
 
 # Fungsi untuk plotting Confusion Matrix
@@ -88,7 +82,7 @@ def plot_precision_recall_curve(y_true, y_score, classes):
 
 # Sidebar Navigation
 st.sidebar.title("Navigasi")
-page = st.sidebar.selectbox("Pilih Halaman", ["Identitas", "Data Description", "Prediction", "About"])
+page = st.sidebar.radio("Pilih Halaman", ["Identitas", "Data Description", "Prediction", "About"])
 
 # ===================== Halaman Identitas =====================
 if page == "Identitas":
@@ -108,7 +102,7 @@ if page == "Identitas":
 
 # ===================== Halaman Data Description =====================
 elif page == "Data Description":
-    st.title("📊 Students' Stress Level Dataset Description")
+    st.title("📊 Deskripsi Data")
     st.write("""
     Dataset ini berisi informasi tentang tingkat stres mahasiswa yang diukur berdasarkan:
     - Study Hours
@@ -127,10 +121,10 @@ elif page == "Data Description":
 
 # ===================== Halaman Prediction =====================
 elif page == "Prediction":
-    st.title("📈 Prediction of Stress Levels")
+    st.title("📈 Prediksi Tingkat Stres")
 
     if "nama" in st.session_state and "umur" in st.session_state:
-        st.info(f"Prediksi untuk: {st.session_state['nama']}, umur {st.session_state['umur']} tahun")
+        st.info(f"Prediksi untuk: {st.session_state['nama']}, umur **{st.session_state['umur']} tahun")
     else:
         st.warning("Silakan isi identitas terlebih dahulu di halaman Identitas.")
 
@@ -145,7 +139,6 @@ elif page == "Prediction":
 
     # Konversi ekstrakurikuler ke binary
     extracurricular_binary = 1 if extracurricular == "Yes" else 0
-    academic_perf = 2 if gpa >= 3.5 else 1 if gpa >= 2.5 else 0
 
     input_data = pd.DataFrame([{
     "Study_Hours_Per_Day": study_hours,
@@ -182,11 +175,10 @@ elif page == "Prediction":
     if st.button("Prediksi"):
         try:
             prediction = model.predict(input_data)[0]
-            prediction_label = map_stress_level(prediction)
             if "nama" in st.session_state:
-                st.success(f"{st.session_state['nama']}, tingkat stres kamu diprediksi: {prediction_label}")
+                st.success(f"{st.session_state['nama']}, tingkat stres kamu diprediksi: {prediction}")
             else:
-                st.success(f"Tingkat stres diprediksi: {prediction_label}")
+                st.success(f"Tingkat stres diprediksi: {prediction}")
 
             # Evaluasi model
             st.markdown("---")
@@ -195,8 +187,7 @@ elif page == "Prediction":
             data = load_data()
             X = data.drop(columns=["Level"])
             y = data["Level"]
-            classes = [0, 1, 2]
-            labels = [map_stress_level(i) for i in classes]
+            classes = np.unique(y)
 
             expected_columns = [
                 "Study_Hours_Per_Day",
@@ -213,7 +204,7 @@ elif page == "Prediction":
             y_score = model.predict_proba(X)
 
             st.markdown("Confusion Matrix")
-            fig_cm = plot_confusion_matrix(y, y_pred, labels)
+            fig_cm = plot_confusion_matrix(y, y_pred, classes)
             st.pyplot(fig_cm)
 
             st.markdown("ROC Curve")
