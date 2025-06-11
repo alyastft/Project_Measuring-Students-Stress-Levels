@@ -120,6 +120,11 @@ elif page == "Data Description":
     """)
 
     data = load_data()
+    
+    # Mapping kolom Level menjadi label kategori
+    label_mapping = {0: "Low", 1: "Moderate", 2: "High"}
+    data["Level"] = data["Level"].map(label_mapping)
+
     st.subheader("Cuplikan Data")
     st.dataframe(data)
 
@@ -128,7 +133,7 @@ elif page == "Prediction":
     st.title("📈 Prediksi Tingkat Stres")
 
     if "nama" in st.session_state and "umur" in st.session_state:
-        st.info(f"Prediksi untuk: {st.session_state['nama']}, umur **{st.session_state['umur']} tahun")
+        st.info(f"Prediksi untuk: {st.session_state['nama']}, umur {st.session_state['umur']} tahun")
     else:
         st.warning("Silakan isi identitas terlebih dahulu di halaman Identitas.")
 
