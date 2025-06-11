@@ -152,7 +152,7 @@ elif page == "Data Description":
     st.pyplot(fig)
 
     # Scatter Plot GPA vs Study Hours dengan warna berdasarkan Level
-    st.subheader("Scatter Plot: GPA vs Study Hours")
+    st.subheader("Scatter Plot: Study Hours vs GPA")
     
     # Map ulang Level untuk memastikan label sesuai
     label_mapping = {0: "Low", 1: "Moderate", 2: "High"}
@@ -164,8 +164,8 @@ elif page == "Data Description":
     for level in ["Low", "Moderate", "High"]:
         subset = data[data["Level"] == level]
         ax.scatter(
-            subset["Study_Hours_Per_Day"],
             subset["GPA"],
+            subset["Study_Hours_Per_Day"],
             label=level,
             alpha=0.7,
             edgecolors='k',
