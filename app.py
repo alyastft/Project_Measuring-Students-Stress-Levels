@@ -125,10 +125,11 @@ elif page == "Data Description":
     label_mapping = {0: "Low", 1: "Moderate", 2: "High"}
     data["Level"] = data["Level"].map(label_mapping)
 
-    st.subheader("Cuplikan Data")
+    st.subheader("Here's the raw data")
     st.dataframe(data)
 
     # Tambahkan visualisasi distribusi stress level
+    st.subheader("Class distribution")
     st.bar_chart(data["Level"].value_counts().reindex(["Low", "Moderate", "High"]))
 
 # ===================== Halaman Prediction =====================
