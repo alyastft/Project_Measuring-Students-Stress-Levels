@@ -1,4 +1,3 @@
-# app.py
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -6,7 +5,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pickle
 
-data = pd.read_pickle('stacking_classifier_model.pkl')  # Ganti dengan path yang sesuai
+# Definisikan fungsi untuk memuat data
+def load_data():
+    return pd.read_pickle('data_file_path.pkl')  # Ganti dengan path file
+
+# Panggil data
+data = load_data()
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
@@ -27,9 +31,6 @@ if page == "Data Description":
     Target variabel adalah **Stress Level**.
     """)
 
-     # Panggil data
-    data = load_data()
-
     st.subheader("Data Preview")
     st.dataframe(data)
     
@@ -39,7 +40,7 @@ elif page == "Prediction":
 
     st.write("Masukkan informasi berikut untuk memprediksi tingkat stres mahasiswa:")
 
-    study_hours = st.slider("Study Hours per Day", 0, 12, 4)
+    study_hours = st.slider("Study Hours per Day", 0, 20, 4)
     sleep_duration = st.slider("Sleep Duration per Day (hours)", 0, 12, 7)
     physical_activity = st.slider("Physical Activity (hours/week)", 0, 20, 3)
     social_hours = st.slider("Social Hours per Day", 0, 12, 2)
