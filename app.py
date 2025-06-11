@@ -6,26 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pickle
 
-# Fungsi untuk load model
-@st.cache_resource
-def load_model():
-    with open("stacking_classifier_model.pkl", "rb") as f:
-        return pickle.load(f)
-
-# Fungsi untuk load data dummy (karena tidak pakai .csv/.pkl)
-@st.cache_data
-def load_data(n=300):
-    np.random.seed(42)
-    data = {
-        "Study Hours": np.random.randint(0, 10, size=n),
-        "Sleep Duration": np.random.randint(4, 10, size=n),
-        "Physical Activity": np.random.randint(0, 5, size=n),
-        "Social Hours": np.random.randint(0, 6, size=n),
-        "Extracurricular Activities": np.random.randint(0, 2, size=n),
-        "GPA": np.round(np.random.uniform(2.0, 4.0, size=n), 2),
-        "Level": np.random.randint(0, 3, size=n),
-    }
-    return pd.DataFrame(data)
+data = pd.read_pickle('stacking_classifier_model.pkl')  # Ganti dengan path yang sesuai
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
