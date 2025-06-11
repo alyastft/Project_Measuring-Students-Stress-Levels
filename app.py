@@ -133,7 +133,7 @@ elif page == "Data Description":
     st.bar_chart(data["Level"].value_counts().reindex(["Low", "Moderate", "High"]))
 
     # Pie Chart Distribusi Tingkat Stres
-    st.subheader("Distribusi Tingkat Stres (Pie Chart)")
+    st.subheader("Distribution of Stress Level (Pie Chart)")
     stress_counts = data["Level"].value_counts().reindex(["Low", "Moderate", "High"])
 
     fig, ax = plt.subplots()
