@@ -11,6 +11,7 @@ def load_data():
 
 # Panggil data
 data = load_data()
+df = pd.DataFrame(data=data.data, columns=data.feature_names)
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
@@ -32,7 +33,7 @@ if page == "Data Description":
     """)
 
     st.subheader("Data Preview")
-    st.dataframe(data)
+    st.dataframe(df)
     
 # Page 2: Prediction
 elif page == "Prediction":
