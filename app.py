@@ -12,7 +12,7 @@ def load_model():
     with open("stacking_classifier_model.pkl", "rb") as f:
         return pickle.load(f)
 
-# Load data dummy
+# Load data dummy dan tambahkan prediksi Stress Level
 @st.cache_data
 def load_data(n=300):
     np.random.seed(42)
@@ -24,13 +24,14 @@ def load_data(n=300):
         "Extracurricular Activities": np.random.randint(0, 2, size=n),
         "GPA": np.round(np.random.uniform(2.0, 4.0, size=n), 2),
     }
-    df = pd.DataFrame(data)
-    df["Stress_Level"] = model.predict(df)
-    return df
+    return pd.DataFrame(data)
 
-# Load model and data
+# Load model terlebih dahulu
 model = load_model()
-data = load_data(model)
+
+# Load data, lalu prediksi stress level
+data = load_data()
+data["Stress_Level"] = model.predict(data)
 
 # Sidebar navigation
 st.sidebar.title("Navigation")
@@ -86,8 +87,8 @@ if page == "Data Description":
         fig, ax = plt.subplots()
         sns.boxplot(x="Stress_Level", y=feature, data=data, palette="pastel", ax=ax)
         st.pyplot(fig)
-        
-# Halaman 2: Prediction
+
+# Page 2: Prediction
 elif page == "Prediction":
     st.title("Stress Level Prediction")
 
@@ -115,7 +116,7 @@ elif page == "Prediction":
         prediction = model.predict(input_data)[0]
         st.success(f"Predicted Stress Level: **{prediction}**")
 
-# Halaman 3: About
+# Page 3: About
 elif page == "About":
     st.title("About This Model")
     st.write("""
