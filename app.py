@@ -121,7 +121,7 @@ elif page == "Prediction":
     st.title("📈 Prediction of Stress Levels")
 
     if "nama" in st.session_state and "umur" in st.session_state:
-        st.info(f"Prediksi untuk: {st.session_state['nama']}, umur **{st.session_state['umur']} tahun")
+        st.info(f"Prediksi untuk: {st.session_state['nama']}, umur {st.session_state['umur']} tahun")
     else:
         st.warning("Silakan isi identitas terlebih dahulu di halaman Identitas.")
 
@@ -175,7 +175,7 @@ elif page == "Prediction":
             prediction = model.predict(input_data)[0]
             prediction_label = map_stress_level(prediction)
             if "nama" in st.session_state:
-                st.success(f"{st.session_state['nama']}, tingkat stres kamu diprediksi: {prediction}")
+                st.success(f"{st.session_state['nama']}, tingkat stres kamu diprediksi: {prediction_label}")
             else:
                 st.success(f"Tingkat stres diprediksi: {prediction_label}")
 
