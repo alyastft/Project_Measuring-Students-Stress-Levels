@@ -4,18 +4,28 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pickle
+import os
 
 # Load model
 @st.cache_resource
 def load_model():
-    with open("/mnt/data/stacking_classifier_model.pkl", "rb") as f:
-        return pickle.load(f)
+    model_path = "/mnt/data/stacking_classifier_model.pkl"
+    if not os.path.exists(model_path):
+        st.error("❌ File model tidak ditemukan di /mnt/data/. Harap upload ulang.")
+        st.stop()
+    try:
+        with open(model_path, "rb") as f:
+            model = pickle.load(f)
+        return model
+    except Exception as e:
+        st.error(f"❌ Gagal memuat model: {e}")
+        st.stop()
 
-# Load dummy data sesuai format pelatihan model
+# Load dummy data
 @st.cache_data
-def load_data(n=300):
+def load_data(model, n=300):
     np.random.seed(42)
-    data = {
+    df = pd.DataFrame({
         "Study_Hours_Per_Day": np.random.randint(0, 10, size=n),
         "Sleep_Hours_Per_Day": np.random.randint(4, 10, size=n),
         "Physical_Activity_Hours_Per_Day": np.random.randint(0, 5, size=n),
@@ -23,61 +33,37 @@ def load_data(n=300):
         "Extracurricular_Hours_Per_Day": np.random.randint(0, 2, size=n),
         "GPA": np.round(np.random.uniform(2.0, 4.0, size=n), 2),
         "Academic_Performance_Encoded": np.random.randint(0, 3, size=n)
-    }
-    df = pd.DataFrame(data)
-    df["Stress_Level"] = model.predict(df)
+    })
+    try:
+        df["Stress_Level"] = model.predict(df)
+    except Exception as e:
+        st.error(f"❌ Gagal memprediksi Stress Level: {e}")
+        st.stop()
     return df
 
-# Load model dan data
+# Muat model dan data
 model = load_model()
-data = load_data()
+data = load_data(model)
 
-# Sidebar navigation
+# Sidebar
 st.sidebar.title("Navigation")
 page = st.sidebar.selectbox("Go to", ["Data Description", "Prediction", "About"])
 
-# Halaman 1: Data Description
+# Data Description
 if page == "Data Description":
     st.title("📊 Stress Analysis Dataset Description")
-    st.write("""
-    Dataset ini berisi informasi tentang tingkat stres mahasiswa berdasarkan:
-    - Study Hours per Day
-    - Sleep Hours per Day
-    - Physical Activity Hours per Day
-    - Social Hours per Day
-    - Extracurricular Hours per Day
-    - GPA
-    - Academic Performance Encoded
-    """)
-    
-    st.subheader("Data Preview")
-    st.dataframe(data.head(20))
+    st.write("Berikut adalah data simulasi mahasiswa beserta prediksi tingkat stres:")
 
-    st.subheader("Distribusi Stress Level (Prediksi)")
+    st.dataframe(data.head())
+
+    st.subheader("Distribusi Stress Level")
     fig, ax = plt.subplots()
     sns.countplot(y="Stress_Level", data=data, palette="Set2", ax=ax)
     st.pyplot(fig)
 
-    st.subheader("Feature Distributions")
-    features = data.columns[:-1]
-    for feature in features:
-        st.write(f"### {feature}")
-        fig, ax = plt.subplots()
-        sns.histplot(data[feature], kde=True, bins=20, ax=ax, color='skyblue')
-        st.pyplot(fig)
-
-    st.subheader("Feature vs Stress Level (Boxplot)")
-    for feature in features:
-        st.write(f"### {feature} by Stress Level")
-        fig, ax = plt.subplots()
-        sns.boxplot(x="Stress_Level", y=feature, data=data, palette="pastel", ax=ax)
-        st.pyplot(fig)
-
-# Halaman 2: Prediction
+# Prediction
 elif page == "Prediction":
     st.title("🎯 Predict Stress Level")
-
-    st.write("Masukkan informasi berikut untuk memprediksi tingkat stres mahasiswa:")
 
     input_dict = {
         "Study_Hours_Per_Day": st.slider("Study Hours per Day", 0, 12, 4),
@@ -92,15 +78,19 @@ elif page == "Prediction":
     input_df = pd.DataFrame([input_dict])
 
     if st.button("Predict"):
-        prediction = model.predict(input_df)[0]
-        st.success(f"Predicted Stress Level: **{prediction}**")
+        try:
+            prediction = model.predict(input_df)[0]
+            st.success(f"Predicted Stress Level: **{prediction}**")
+        except Exception as e:
+            st.error(f"❌ Gagal memprediksi: {e}")
 
-# Halaman 3: About
+# About
 elif page == "About":
-    st.title("🧠 About This Model")
+    st.title("🧠 About This App")
     st.write("""
-    Model ini menggunakan **Stacking Classifier** untuk memprediksi tingkat stres mahasiswa.
-    
-    - Menggabungkan beberapa model untuk hasil yang lebih akurat
-    - Dilatih dengan fitur-fitur seperti jam belajar, aktivitas fisik, tidur, dan GPA
+    Aplikasi ini memprediksi tingkat stres mahasiswa berdasarkan:
+    - Jam belajar, tidur, aktivitas fisik, sosial, dan ekstrakurikuler
+    - GPA dan performa akademik
+
+    Model yang digunakan adalah **Stacking Classifier** dengan beberapa base learner.
     """)
