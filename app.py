@@ -7,7 +7,7 @@ import pickle
 
 # Definisikan fungsi untuk memuat data
 def load_data():
-    return pd.read_pickle('data_file_path.pkl')  # Ganti dengan path file
+    return pd.read_pickle('stacking_classifier_model.pkl')  # Ganti dengan path file
 
 # Panggil data
 data = load_data()
