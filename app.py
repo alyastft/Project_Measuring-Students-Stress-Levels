@@ -86,7 +86,7 @@ def plot_precision_recall_curve(y_true, y_score, classes):
 
 # Sidebar Navigation
 st.sidebar.title("Navigasi")
-page = st.sidebar.selectbox(“Select Page”, [‘Identity’, “Data Description”, ‘Prediction’, “About Models”])
+page = st.sidebar.selectbox("Select Page", ["Identity", "Data Description", "Prediction", "About Models"])
 
 # ===================== Halaman Identitas =====================
 if page == "Identity":
