@@ -6,13 +6,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pickle
 
-# Load model
+# Fungsi: Load model
 @st.cache_resource
 def load_model():
     with open("stacking_classifier_model.pkl", "rb") as f:
         return pickle.load(f)
 
-# Load data dummy dan tambahkan prediksi Stress Level
+# Fungsi: Load data dummy
 @st.cache_data
 def load_data(n=300):
     np.random.seed(42)
@@ -26,18 +26,32 @@ def load_data(n=300):
     }
     return pd.DataFrame(data)
 
-# Load model terlebih dahulu
+# Inisialisasi
 model = load_model()
-
-# Load data, lalu prediksi stress level
 data = load_data()
-data["Stress_Level"] = model.predict(data)
 
-# Sidebar navigation
+# Tentukan fitur yang digunakan oleh model
+features = [
+    "Study Hours",
+    "Sleep Duration",
+    "Physical Activity",
+    "Social Hours",
+    "Extracurricular Activities",
+    "GPA"
+]
+
+# Prediksi stress level (dengan validasi)
+try:
+    data["Stress_Level"] = model.predict(data[features])
+except Exception as e:
+    st.error(f"❌ Gagal memprediksi Stress Level: {e}")
+    st.stop()
+
+# Sidebar
 st.sidebar.title("Navigation")
-page = st.sidebar.selectbox("Go to", ["Data Description", "Prediction", "About"])
+page = st.sidebar.radio("Go to", ["Data Description", "Prediction", "About"])
 
-# Page 1: Data Description
+# Halaman: Data Description
 if page == "Data Description":
     st.title("📊 Stress Analysis Dataset Description")
 
@@ -65,14 +79,6 @@ if page == "Data Description":
     st.pyplot(fig)
 
     st.subheader("Feature Distributions (Histogram)")
-    features = [
-        "Study Hours",
-        "Sleep Duration",
-        "Physical Activity",
-        "Social Hours",
-        "Extracurricular Activities",
-        "GPA"
-    ]
     for feature in features:
         st.write(f"### {feature}")
         fig, ax = plt.subplots()
@@ -88,9 +94,9 @@ if page == "Data Description":
         sns.boxplot(x="Stress_Level", y=feature, data=data, palette="pastel", ax=ax)
         st.pyplot(fig)
 
-# Page 2: Prediction
+# Halaman: Prediction
 elif page == "Prediction":
-    st.title("Stress Level Prediction")
+    st.title("🔮 Stress Level Prediction")
 
     st.write("Masukkan informasi berikut untuk memprediksi tingkat stres mahasiswa:")
 
@@ -113,12 +119,15 @@ elif page == "Prediction":
     }])
 
     if st.button("Predict"):
-        prediction = model.predict(input_data)[0]
-        st.success(f"Predicted Stress Level: **{prediction}**")
+        try:
+            prediction = model.predict(input_data[features])[0]
+            st.success(f"🎯 Predicted Stress Level: **{prediction}**")
+        except Exception as e:
+            st.error(f"❌ Gagal memprediksi: {e}")
 
-# Page 3: About
+# Halaman: About
 elif page == "About":
-    st.title("About This Model")
+    st.title("🧠 About This Model")
     st.write("""
     Model ini menggunakan pendekatan **Stacking Classifier** untuk memprediksi tingkat stres mahasiswa.
 
