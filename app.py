@@ -151,21 +151,26 @@ elif page == "Data Description":
     ax.axis("equal")  # Agar lingkarannya proporsional
     st.pyplot(fig)
 
-    # Scatter Plot GPA vs Study Hours dengan warna berdasarkan Level
-    st.subheader("Scatter Plot: Study Hours vs GPA")
+    data = load_data()
     
-    # Map ulang Level untuk memastikan label sesuai
+    # Pastikan mapping dilakukan SEBELUM scatter plot
     label_mapping = {0: "Low", 1: "Moderate", 2: "High"}
     data["Level"] = data["Level"].map(label_mapping)
     
+    # Cek isi data
+    st.write("🔍 Debugging Data Sample:", data.head())
+    
+    # Scatter plot
+    st.subheader("Scatter Plot: GPA vs Study Hours")
     fig_scatter, ax = plt.subplots()
+    
     colors = {"Low": "#66b3ff", "Moderate": "#ffcc99", "High": "#ff9999"}
     
     for level in ["Low", "Moderate", "High"]:
         subset = data[data["Level"] == level]
         ax.scatter(
-            subset["GPA"],
             subset["Study_Hours_Per_Day"],
+            subset["GPA"],
             label=level,
             alpha=0.7,
             edgecolors='k',
@@ -177,7 +182,9 @@ elif page == "Data Description":
     ax.set_ylabel("GPA")
     ax.set_title("Relationship between Study Hours and GPA based on Stress Levels")
     ax.legend(title="Stress Level")
+    
     st.pyplot(fig_scatter)
+
 
 
 # ===================== Halaman Prediction =====================
