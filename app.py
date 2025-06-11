@@ -32,9 +32,11 @@ def load_data(n=300):
         "Social Hours": np.random.randint(0, 6, size=n),
         "Extracurricular Activities": np.random.randint(0, 2, size=n),
         "GPA": np.round(np.random.uniform(2.0, 4.0, size=n), 2),
-        "Level": np.random.randint(0, 3, size=n),
     }
-    return pd.DataFrame(data)
+    df = pd.DataFrame(data)
+    df["Academic_Performance_Encoded"] = (df["GPA"]>=3.0).astype(int)
+    df["Level"] = np.random.randint(0, 3, size = n)
+    return df
 
 # Fungsi untuk plotting Confusion Matrix
 def plot_confusion_matrix(y_true, y_pred, classes):
@@ -48,29 +50,36 @@ def plot_confusion_matrix(y_true, y_pred, classes):
 # Fungsi untuk plotting ROC Curve
 def plot_roc_curve(y_true, y_score, classes):
     y_test_bin = label_binarize(y_true, classes=classes)
+    n_classes = y_test_bin.shape[1]
+
     fig, ax = plt.subplots(figsize=(6,5))
-    for i in range(len(classes)):
+    for i in range(n_classes):
         fpr, tpr, _ = roc_curve(y_test_bin[:, i], y_score[:, i])
         roc_auc = auc(fpr, tpr)
-        ax.plot(fpr, tpr, lw=2, label=f'{map_stress_level(classes[i])} (AUC = {roc_auc:.2f})')
-    ax.plot([0, 1], [0, 1], 'k--', lw=2)
-    ax.set_xlim([0, 1])
-    ax.set_ylim([0, 1.05])
+        ax.plot(fpr, tpr, lw=2, label=f'Class {classes[i]} (AUC = {roc_auc:.2f})')
+
+    ax.plot([0,1], [0,1], 'k--', lw=2)
+    ax.set_xlim([0,1])
+    ax.set_ylim([0,1.05])
     ax.set_xlabel('False Positive Rate')
     ax.set_ylabel('True Positive Rate')
     ax.set_title('ROC Curve')
     ax.legend(loc='lower right')
     return fig
 
+# Fungsi untuk plotting Precision-Recall Curve
 def plot_precision_recall_curve(y_true, y_score, classes):
     y_test_bin = label_binarize(y_true, classes=classes)
+    n_classes = y_test_bin.shape[1]
+
     fig, ax = plt.subplots(figsize=(6,5))
-    for i in range(len(classes)):
+    for i in range(n_classes):
         precision, recall, _ = precision_recall_curve(y_test_bin[:, i], y_score[:, i])
         pr_auc = auc(recall, precision)
-        ax.plot(recall, precision, lw=2, label=f'{map_stress_level(classes[i])} (AUC = {pr_auc:.2f})')
-    ax.set_xlim([0, 1])
-    ax.set_ylim([0, 1.05])
+        ax.plot(recall, precision, lw=2, label=f'Class {classes[i]} (AUC = {pr_auc:.2f})')
+
+    ax.set_xlim([0,1])
+    ax.set_ylim([0,1.05])
     ax.set_xlabel('Recall')
     ax.set_ylabel('Precision')
     ax.set_title('Precision-Recall Curve')
@@ -186,12 +195,22 @@ elif page == "Prediction":
             data = load_data()
             X = data.drop(columns=["Level"])
             y = data["Level"]
-
-            y_pred = model.predict(X)
-            y_score = model.predict_proba(X)
-
             classes = [0, 1, 2]
             labels = [map_stress_level(i) for i in classes]
+
+            expected_columns = [
+                "Study_Hours_Per_Day",
+                "Extracurricular_Hours_Per_Day",
+                "Sleep_Hours_Per_Day",
+                "Social_Hours_Per_Day",
+                "Physical_Activity_Hours_Per_Day",
+                "GPA",
+                "Academic_Performance_Encoded"
+            ]
+            X = X[expected_columns]
+            
+            y_pred = model.predict(X)
+            y_score = model.predict_proba(X)
 
             st.markdown("Confusion Matrix")
             fig_cm = plot_confusion_matrix(y, y_pred, labels)
