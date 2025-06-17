@@ -163,11 +163,35 @@ elif page == "Evaluasi Model":
 
     st.subheader("🎯 Akurasi")
     st.success(f"Akurasi: {acc * 100:.2f}%")
+    st.markdown("""
+    **Akurasi** adalah persentase prediksi yang benar dari keseluruhan data.
+    
+    > **Rumus**: (Jumlah Prediksi Benar) / (Total Data)
+    
+    - Jika akurasi = 100%, artinya semua prediksi tepat.
+    - ⚠️ Akurasi tinggi **tidak selalu berarti model bagus**, apalagi jika distribusi kelas tidak seimbang (misalnya mayoritas data ada di kelas "High").
+    """)
 
     st.subheader("📊 Confusion Matrix")
     fig_cm, ax = plt.subplots()
     ConfusionMatrixDisplay.from_predictions(y, y_pred, display_labels=class_labels, ax=ax)
     st.pyplot(fig_cm)
+    st.markdown("""
+    **Confusion Matrix** adalah tabel yang membandingkan antara label sebenarnya dan hasil prediksi model.
+    
+    - **Baris** = label asli (ground truth)
+    - **Kolom** = label hasil prediksi
+    - Angka di **diagonal utama** adalah jumlah prediksi yang benar.
+    - Angka di luar diagonal = prediksi yang salah.
+
+    📝 **Contoh pada hasil:**
+    - `Low → Low` = 297 ✅
+    - `Moderate → Moderate` = 674 ✅
+    - `High → High` = 1029 ✅
+    - Tidak ada angka di luar diagonal → tidak ada kesalahan prediksi.
+
+    ✅ Ini menunjukkan model **sangat akurat** dalam memetakan data ke kelas stres yang benar.
+    """)
 
     st.subheader("📉 ROC Curve")
     y_bin = label_binarize(y, classes=[0, 1, 2])
@@ -181,9 +205,39 @@ elif page == "Evaluasi Model":
     ax.set_ylabel("True Positive Rate")
     ax.legend()
     st.pyplot(fig_roc)
+    **ROC Curve** (Receiver Operating Characteristic) menunjukkan hubungan antara:
+    
+    - **True Positive Rate (Recall)** = Seberapa banyak kasus positif yang terdeteksi dengan benar.
+    - **False Positive Rate** = Seberapa banyak kasus negatif yang salah dikira positif.
+
+    Garis ROC yang bagus akan **mendekati pojok kiri atas**.
+
+    **AUC (Area Under Curve)** mengukur luas area di bawah kurva ROC.
+    - Nilai AUC = 1.0 → sempurna.
+    - Nilai AUC = 0.5 → sama seperti menebak secara acak.
+
+    📝 **Contoh hasil:**
+    - AUC untuk semua kelas (`Low`, `Moderate`, `High`) = **1.00**
+    - Artinya model sangat hebat dalam membedakan ketiga tingkat stres.
+    """)
 
     st.subheader("🧾 Classification Report")
     st.dataframe(pd.DataFrame(classification_report(y, y_pred, target_names=class_labels, output_dict=True)).T)
+    st.markdown("""
+    **Classification Report** memberikan ringkasan metrik evaluasi untuk setiap kelas:
+
+    - **Precision**: Dari semua prediksi ke kelas ini, berapa yang benar.
+    - **Recall**: Dari semua data yang sebenarnya milik kelas ini, berapa yang berhasil ditemukan.
+    - **F1-Score**: Rata-rata harmonis dari precision dan recall.
+    - **Support**: Jumlah data asli di kelas tersebut.
+
+    📝 **Contoh Interpretasi:**
+    - Jika `High` punya precision dan recall = 1.00 → model memprediksi kelas ini **dengan sempurna**.
+    - `Support` menunjukkan distribusi data asli, contohnya:
+      - `Low`: 297 mahasiswa
+      - `Moderate`: 674 mahasiswa
+      - `High`: 1029 mahasiswa
+    """)
 
 # ===========================
 # 6. Prediksi
