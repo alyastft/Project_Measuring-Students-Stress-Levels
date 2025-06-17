@@ -30,8 +30,6 @@ model, scaler = load_model_and_scaler()
 @st.cache_data
 def load_data():
     df = pd.read_csv("student_lifestyle_dataset.csv")
-    
-    # Label encoding sesuai training
     stress_mapping = {'Low': 0, 'Moderate': 1, 'High': 2}
     performance_mapping = {'Poor': 0, 'Fair': 1, 'Good': 2, 'Excellent': 3}
 
@@ -45,14 +43,19 @@ def load_data():
 
 data = load_data()
 
+features = [
+    "Study_Hours_Per_Day", "Sleep_Hours_Per_Day", "Physical_Activity_Hours_Per_Day",
+    "Social_Hours_Per_Day", "Extracurricular_Hours_Per_Day", "GPA", "Academic_Performance_Encoded"
+]
+
 # ===========================
-# Sidebar Navigation
+# 3. Sidebar Navigation
 # ===========================
 st.sidebar.title("Navigasi")
 page = st.sidebar.selectbox("Pilih halaman", ["Identitas", "Deskripsi Data", "Evaluasi Model", "Prediksi"])
 
 # ===========================
-# Identitas
+# 4. Identitas
 # ===========================
 if page == "Identitas":
     st.title("👤 Halaman Identitas Pengguna")
@@ -66,7 +69,7 @@ if page == "Identitas":
         st.warning("Silakan isi nama terlebih dahulu.")
 
 # ===========================
-# Deskripsi Data
+# 5. Deskripsi Data
 # ===========================
 elif page == "Deskripsi Data":
     st.title("📊 Deskripsi Dataset")
@@ -84,15 +87,11 @@ elif page == "Deskripsi Data":
     st.pyplot(fig)
 
 # ===========================
-# Evaluasi Model
+# 6. Evaluasi Model
 # ===========================
 elif page == "Evaluasi Model":
-    st.title("📈 Evaluasi Model Stacking Classifier")
+    st.title("📈 Evaluasi Model")
 
-    features = [
-        "Study_Hours_Per_Day", "Sleep_Hours_Per_Day", "Physical_Activity_Hours_Per_Day",
-        "Social_Hours_Per_Day", "Extracurricular_Hours_Per_Day", "GPA", "Academic_Performance_Encoded"
-    ]
     X = data[features]
     y = data["Stress_Level_Encoded"]
     class_labels = ["Low", "Moderate", "High"]
@@ -102,7 +101,7 @@ elif page == "Evaluasi Model":
     y_proba = model.predict_proba(X_scaled)
     acc = accuracy_score(y, y_pred)
 
-    st.subheader("🎯 Akurasi Model")
+    st.subheader("🎯 Akurasi")
     st.success(f"Akurasi: {acc * 100:.2f}%")
 
     st.subheader("📊 Confusion Matrix")
@@ -127,7 +126,7 @@ elif page == "Evaluasi Model":
     st.dataframe(pd.DataFrame(classification_report(y, y_pred, target_names=class_labels, output_dict=True)).T)
 
 # ===========================
-# Prediksi
+# 7. Prediksi
 # ===========================
 elif page == "Prediksi":
     st.title("🔮 Prediksi Tingkat Stres")
@@ -135,6 +134,7 @@ elif page == "Prediksi":
     if "nama" in st.session_state:
         st.info(f"Prediksi untuk: {st.session_state['nama']} ({st.session_state['umur']} tahun)")
 
+    # Input
     study = st.slider("Jam Belajar per Hari", 0, 12, 4)
     sleep = st.slider("Jam Tidur per Hari", 0, 12, 7)
     activity = st.slider("Aktivitas Fisik per Hari", 0, 5, 2)
@@ -153,14 +153,7 @@ elif page == "Prediksi":
         "Extracurricular_Hours_Per_Day": 1 if extracurricular == "Ya" else 0,
         "GPA": gpa,
         "Academic_Performance_Encoded": performance_encoded
-    }])
-
-    # Sesuaikan urutan fitur agar sama dengan saat training
-    features = [
-        "Study_Hours_Per_Day", "Sleep_Hours_Per_Day", "Physical_Activity_Hours_Per_Day",
-        "Social_Hours_Per_Day", "Extracurricular_Hours_Per_Day", "GPA", "Academic_Performance_Encoded"
-    ]
-    input_df = input_df[features]
+    }])[features]  # ⬅️ pastikan urutan kolom sama persis
 
     input_scaled = scaler.transform(input_df)
 
