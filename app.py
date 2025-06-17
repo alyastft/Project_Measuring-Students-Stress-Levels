@@ -59,6 +59,33 @@ page = st.sidebar.selectbox("Pilih halaman", ["Deskripsi Data", "Evaluasi Model"
 # ===========================
 if page == "Deskripsi Data":
     st.title("📊 Deskripsi Dataset")
+    st.markdown("""
+    ## 🗂️ Dataset Overview: Student Lifestyle and Stress
+    
+    Dataset ini berisi informasi gaya hidup mahasiswa dan hubungannya dengan tingkat stres serta performa akademik.
+    
+    ### 🎯 Tujuan
+    Memprediksi **Stress Level** berdasarkan atribut gaya hidup dan akademik.
+    
+    ### 🔑 Fitur Utama
+    - **Jumlah data:** 2.000 mahasiswa
+    - **Kolom:** 8 fitur + target
+    - **Fitur gaya hidup:**
+      - 🕒 `Study_Hours_Per_Day`: Jam belajar per hari
+      - 😴 `Sleep_Hours_Per_Day`: Jam tidur per hari
+      - 🏃‍♂️ `Physical_Activity_Hours_Per_Day`: Aktivitas fisik harian
+      - 🗣️ `Social_Hours_Per_Day`: Interaksi sosial
+      - 🎭 `Extracurricular_Hours_Per_Day`: Kegiatan ekstrakurikuler
+    - **Akademik & Target:**
+      - 🎓 `GPA`: Nilai rata-rata akademik
+      - ⚡ `Stress_Level`: Target prediksi — Low, Moderate, High
+    
+    ### 📌 Insight Data
+    - Stres tinggi → Jam belajar tinggi & tidur rendah
+    - Stres rendah → Aktivitas fisik & sosial seimbang
+    - Fitur paling berpengaruh: **Study Hours** & **Sleep Hours**
+    """)
+
     st.dataframe(data.head())
 
     st.subheader("Distribusi Kelas Stress Level")
@@ -77,6 +104,28 @@ if page == "Deskripsi Data":
 # ===========================
 elif page == "Evaluasi Model":
     st.title("📈 Evaluasi Model")
+    st.markdown("""
+    ### 🧪 Evaluasi Model yang Digunakan
+    
+    Model yang digunakan adalah **Stacking Classifier**, yaitu gabungan dari beberapa model dasar (XGBoost, Logistic Regression, Decision Tree, Random Forest, dan SVM) yang dipadukan menggunakan meta-model Random Forest.
+    Untuk menilai performa model, berikut metrik evaluasi yang digunakan:
+    
+    - **🎯 Akurasi**: Proporsi data uji yang berhasil diprediksi dengan benar. Metrik ini memberikan gambaran umum seberapa sering model membuat prediksi yang benar.
+    
+    - **📊 Confusion Matrix**: Menunjukkan perbandingan antara label sebenarnya dan hasil prediksi. Memudahkan untuk melihat kesalahan spesifik antar kelas stres (Low, Moderate, High).
+    
+    - **📉 ROC Curve dan AUC (Area Under Curve)**:
+      - ROC (Receiver Operating Characteristic) menunjukkan trade-off antara True Positive Rate dan False Positive Rate.
+      - AUC mengukur kemampuan model membedakan antara kelas: semakin tinggi (mendekati 1), semakin baik performa model.
+    
+    - **🧾 Classification Report**:
+      - **Precision**: Seberapa akurat model saat memprediksi suatu kelas.
+      - **Recall**: Seberapa baik model mendeteksi semua instance dari suatu kelas.
+      - **F1-Score**: Harmonic mean dari precision dan recall, menggambarkan keseimbangan antara keduanya.
+    
+    Evaluasi dilakukan menggunakan **data asli** yang telah diseimbangkan menggunakan **SMOTE** dan dinormalisasi dengan **RobustScaler**, agar hasil prediksi lebih adil dan tidak bias terhadap kelas dominan.
+    """)
+
 
     X = data[features]
     X = pd.DataFrame(X, columns=scaler.feature_names_in_)
