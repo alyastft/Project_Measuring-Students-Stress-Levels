@@ -52,26 +52,12 @@ features = [
 # 3. Sidebar Navigation
 # ===========================
 st.sidebar.title("Navigasi")
-page = st.sidebar.selectbox("Pilih halaman", ["Identitas", "Deskripsi Data", "Evaluasi Model", "Prediksi"])
+page = st.sidebar.selectbox("Pilih halaman", ["Deskripsi Data", "Evaluasi Model", "Prediksi"])
 
 # ===========================
-# 4. Identitas
+# 4. Deskripsi Data
 # ===========================
-if page == "Identitas":
-    st.title("👤 Halaman Identitas Pengguna")
-    nama = st.text_input("Nama Anda:")
-    umur = st.number_input("Umur Anda:", min_value=5, max_value=100, value=20)
-    if nama.strip():
-        st.success(f"Halo {nama}, umurmu {umur} tahun.")
-        st.session_state["nama"] = nama
-        st.session_state["umur"] = umur
-    else:
-        st.warning("Silakan isi nama terlebih dahulu.")
-
-# ===========================
-# 5. Deskripsi Data
-# ===========================
-elif page == "Deskripsi Data":
+if page == "Deskripsi Data":
     st.title("📊 Deskripsi Dataset")
     st.dataframe(data.head())
 
@@ -87,13 +73,13 @@ elif page == "Deskripsi Data":
     st.pyplot(fig)
 
 # ===========================
-# 6. Evaluasi Model
+# 5. Evaluasi Model
 # ===========================
 elif page == "Evaluasi Model":
     st.title("📈 Evaluasi Model")
 
     X = data[features]
-    X = pd.DataFrame(X, columns=scaler.feature_names_in_)  # ✅ pastikan nama kolom cocok dengan saat scaler.fit
+    X = pd.DataFrame(X, columns=scaler.feature_names_in_)
     X_scaled = scaler.transform(X)
 
     y = data["Stress_Level_Encoded"]
@@ -128,15 +114,16 @@ elif page == "Evaluasi Model":
     st.dataframe(pd.DataFrame(classification_report(y, y_pred, target_names=class_labels, output_dict=True)).T)
 
 # ===========================
-# 7. Prediksi
+# 6. Prediksi
 # ===========================
 elif page == "Prediksi":
-    st.title("🔮 Prediksi Tingkat Stres")
+    st.title("🔮 Prediksi Tingkat Stres Mahasiswa")
 
-    if "nama" in st.session_state:
-        st.info(f"Prediksi untuk: {st.session_state['nama']} ({st.session_state['umur']} tahun)")
+    # 👤 Input identitas di sini (bukan halaman terpisah)
+    nama = st.text_input("Nama Anda:")
+    umur = st.number_input("Umur Anda:", min_value=5, max_value=100, value=20)
 
-    # Input
+    # 🧾 Input fitur prediksi
     study = st.slider("Jam Belajar per Hari", 0, 12, 4)
     sleep = st.slider("Jam Tidur per Hari", 0, 12, 7)
     activity = st.slider("Aktivitas Fisik per Hari", 0, 5, 2)
@@ -155,11 +142,9 @@ elif page == "Prediksi":
         "Extracurricular_Hours_Per_Day": 1 if extracurricular == "Ya" else 0,
         "GPA": gpa,
         "Academic_Performance_Encoded": performance_encoded
-    }])[features]  # ⬅️ pastikan urutan kolom sama persis
+    }])[features]
 
-    # Samakan kolom input dengan yang digunakan saat training
     input_df = pd.DataFrame(input_df, columns=scaler.feature_names_in_)
-
     input_scaled = scaler.transform(input_df)
 
     if st.button("Prediksi"):
@@ -167,7 +152,7 @@ elif page == "Prediksi":
         prob = model.predict_proba(input_scaled)[0]
         label = {0: "Low", 1: "Moderate", 2: "High"}[pred]
 
-        st.success(f"Tingkat stres diprediksi: **{label}**")
+        st.success(f"Hai {nama} (umur {umur}), tingkat stresmu diprediksi: **{label}**")
 
         st.subheader("📊 Probabilitas Prediksi")
         fig, ax = plt.subplots()
