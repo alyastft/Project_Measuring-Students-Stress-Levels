@@ -15,14 +15,14 @@ from sklearn.preprocessing import label_binarize
 # 1. Load Model & Scaler
 # ===========================
 @st.cache_resource
-def load_model():
+def load_model_and_scaler():
     with open("stacking_classifier_model.pkl", "rb") as f:
         model = pickle.load(f)
     with open("scaler.pkl", "rb") as f:
         scaler = pickle.load(f)
     return model, scaler
 
-model, scaler = load_model()
+model, scaler = load_model_and_scaler()
 
 # ===========================
 # 2. Load Dataset
@@ -31,7 +31,6 @@ model, scaler = load_model()
 def load_data():
     df = pd.read_csv("student_lifestyle_dataset.csv")
 
-    # Encoding sesuai training
     stress_mapping = {'Low': 0, 'Moderate': 1, 'High': 2}
     performance_mapping = {'Poor': 0, 'Fair': 1, 'Good': 2, 'Excellent': 3}
 
@@ -45,14 +44,25 @@ def load_data():
 
 data = load_data()
 
+# Fitur input model (harus urut dan lengkap)
+features = [
+    "Study_Hours_Per_Day",
+    "Sleep_Hours_Per_Day",
+    "Physical_Activity_Hours_Per_Day",
+    "Social_Hours_Per_Day",
+    "Extracurricular_Hours_Per_Day",
+    "GPA",
+    "Academic_Performance_Encoded"
+]
+
 # ===========================
-# 3. Sidebar Navigation
+# Sidebar Navigation
 # ===========================
 st.sidebar.title("Navigasi")
 page = st.sidebar.selectbox("Pilih halaman", ["Identitas", "Deskripsi Data", "Evaluasi Model", "Prediksi"])
 
 # ===========================
-# 4. Halaman Identitas
+# Halaman Identitas
 # ===========================
 if page == "Identitas":
     st.title("👤 Halaman Identitas Pengguna")
@@ -66,7 +76,7 @@ if page == "Identitas":
         st.warning("Silakan isi nama terlebih dahulu.")
 
 # ===========================
-# 5. Deskripsi Data
+# Halaman Deskripsi Data
 # ===========================
 elif page == "Deskripsi Data":
     st.title("📊 Deskripsi Dataset")
@@ -78,21 +88,17 @@ elif page == "Deskripsi Data":
     st.subheader("Diagram Pie Stress Level")
     fig, ax = plt.subplots()
     data["Stress_Level"].value_counts().plot.pie(
-        autopct="%1.1f%%", startangle=90, ax=ax, shadow=True, explode=[0.05, 0.05, 0.05]
+        autopct="%1.1f%%", startangle=90, ax=ax, shadow=True, explode=[0.05]*3
     )
     ax.set_ylabel("")
     st.pyplot(fig)
 
 # ===========================
-# 6. Evaluasi Model
+# Halaman Evaluasi Model
 # ===========================
 elif page == "Evaluasi Model":
     st.title("📈 Evaluasi Model Stacking Classifier")
 
-    features = [
-        "Study_Hours_Per_Day", "Sleep_Hours_Per_Day", "Physical_Activity_Hours_Per_Day",
-        "Social_Hours_Per_Day", "Extracurricular_Hours_Per_Day", "GPA", "Academic_Performance_Encoded"
-    ]
     X = data[features]
     y = data["Stress_Level_Encoded"]
     class_labels = ["Low", "Moderate", "High"]
@@ -127,7 +133,7 @@ elif page == "Evaluasi Model":
     st.dataframe(pd.DataFrame(classification_report(y, y_pred, target_names=class_labels, output_dict=True)).T)
 
 # ===========================
-# 7. Halaman Prediksi
+# Halaman Prediksi
 # ===========================
 elif page == "Prediksi":
     st.title("🔮 Prediksi Tingkat Stres")
@@ -155,6 +161,7 @@ elif page == "Prediksi":
         "Academic_Performance_Encoded": performance_encoded
     }])
 
+    input_df = input_df[features]
     input_scaled = scaler.transform(input_df)
 
     if st.button("Prediksi"):
