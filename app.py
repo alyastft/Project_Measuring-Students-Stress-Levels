@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pickle
 
+from sklearn.preprocessing import RobustScaler
 from sklearn.metrics import (
     accuracy_score, confusion_matrix, ConfusionMatrixDisplay,
     roc_curve, auc, precision_recall_curve, classification_report
@@ -15,22 +16,20 @@ from sklearn.preprocessing import label_binarize
 # 1. Load Model & Scaler
 # ===========================
 @st.cache_resource
-def load_model_and_scaler():
+def load_model():
     with open("stacking_classifier_model.pkl", "rb") as f:
-        model = pickle.load(f)
-    with open("scaler.pkl", "rb") as f:
-        scaler = pickle.load(f)
-    return model, scaler
+        return pickle.load(f)
 
-model, scaler = load_model_and_scaler()
+model = load_model()
 
 # ===========================
-# 2. Load Dataset
+# 2. Load Real Dataset
 # ===========================
 @st.cache_data
 def load_data():
     df = pd.read_csv("student_lifestyle_dataset.csv")
-
+    
+    # Label encoding (harus cocok dengan saat training)
     stress_mapping = {'Low': 0, 'Moderate': 1, 'High': 2}
     performance_mapping = {'Poor': 0, 'Fair': 1, 'Good': 2, 'Excellent': 3}
 
@@ -39,30 +38,19 @@ def load_data():
     )
     df['Academic_Performance_Encoded'] = df['Academic_Performance'].map(performance_mapping)
     df['Stress_Level_Encoded'] = df['Stress_Level'].map(stress_mapping)
-
+    
     return df
 
 data = load_data()
 
-# Fitur input model (harus urut dan lengkap)
-features = [
-    "Study_Hours_Per_Day",
-    "Sleep_Hours_Per_Day",
-    "Physical_Activity_Hours_Per_Day",
-    "Social_Hours_Per_Day",
-    "Extracurricular_Hours_Per_Day",
-    "GPA",
-    "Academic_Performance_Encoded"
-]
-
 # ===========================
-# Sidebar Navigation
+# 3. Sidebar Navigation
 # ===========================
 st.sidebar.title("Navigasi")
 page = st.sidebar.selectbox("Pilih halaman", ["Identitas", "Deskripsi Data", "Evaluasi Model", "Prediksi"])
 
 # ===========================
-# Halaman Identitas
+# 4. Halaman Identitas
 # ===========================
 if page == "Identitas":
     st.title("👤 Halaman Identitas Pengguna")
@@ -76,10 +64,12 @@ if page == "Identitas":
         st.warning("Silakan isi nama terlebih dahulu.")
 
 # ===========================
-# Halaman Deskripsi Data
+# 5. Deskripsi Data
 # ===========================
 elif page == "Deskripsi Data":
     st.title("📊 Deskripsi Dataset")
+    st.write("Menampilkan distribusi tingkat stres siswa berdasarkan atribut gaya hidup dan akademik.")
+    
     st.dataframe(data.head())
 
     st.subheader("Distribusi Kelas Stress Level")
@@ -88,22 +78,29 @@ elif page == "Deskripsi Data":
     st.subheader("Diagram Pie Stress Level")
     fig, ax = plt.subplots()
     data["Stress_Level"].value_counts().plot.pie(
-        autopct="%1.1f%%", startangle=90, ax=ax, shadow=True, explode=[0.05]*3
+        autopct="%1.1f%%", startangle=90, ax=ax, shadow=True, explode=[0.05, 0.05, 0.05]
     )
     ax.set_ylabel("")
     st.pyplot(fig)
 
 # ===========================
-# Halaman Evaluasi Model
+# 6. Evaluasi Model
 # ===========================
 elif page == "Evaluasi Model":
     st.title("📈 Evaluasi Model Stacking Classifier")
 
+    features = [
+        "Study_Hours_Per_Day", "Sleep_Hours_Per_Day", "Physical_Activity_Hours_Per_Day",
+        "Social_Hours_Per_Day", "Extracurricular_Hours_Per_Day", "GPA", "Academic_Performance_Encoded"
+    ]
     X = data[features]
     y = data["Stress_Level_Encoded"]
     class_labels = ["Low", "Moderate", "High"]
 
-    X_scaled = scaler.transform(X)
+    # Scaling sesuai model training
+    scaler = RobustScaler()
+    X_scaled = scaler.fit_transform(X)
+
     y_pred = model.predict(X_scaled)
     y_proba = model.predict_proba(X_scaled)
     acc = accuracy_score(y, y_pred)
@@ -113,7 +110,7 @@ elif page == "Evaluasi Model":
 
     st.subheader("📊 Confusion Matrix")
     fig_cm, ax = plt.subplots()
-    ConfusionMatrixDisplay.from_predictions(y, y_pred, display_labels=class_labels, ax=ax)
+    disp = ConfusionMatrixDisplay.from_predictions(y, y_pred, display_labels=class_labels, ax=ax)
     st.pyplot(fig_cm)
 
     st.subheader("📉 ROC Curve")
@@ -133,7 +130,7 @@ elif page == "Evaluasi Model":
     st.dataframe(pd.DataFrame(classification_report(y, y_pred, target_names=class_labels, output_dict=True)).T)
 
 # ===========================
-# Halaman Prediksi
+# 7. Halaman Prediksi
 # ===========================
 elif page == "Prediksi":
     st.title("🔮 Prediksi Tingkat Stres")
@@ -161,7 +158,13 @@ elif page == "Prediksi":
         "Academic_Performance_Encoded": performance_encoded
     }])
 
-    input_df = input_df[features]
+    # Scaling input user
+    scaler = RobustScaler()
+    X_train = data[[
+        "Study_Hours_Per_Day", "Sleep_Hours_Per_Day", "Physical_Activity_Hours_Per_Day",
+        "Social_Hours_Per_Day", "Extracurricular_Hours_Per_Day", "GPA", "Academic_Performance_Encoded"
+    ]]
+    scaler.fit(X_train)
     input_scaled = scaler.transform(input_df)
 
     if st.button("Prediksi"):
