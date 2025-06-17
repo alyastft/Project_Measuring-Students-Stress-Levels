@@ -52,7 +52,7 @@ features = [
 # 3. Sidebar Navigation
 # ===========================
 st.sidebar.title("Navigasi")
-page = st.sidebar.selectbox("Pilih halaman", ["Deskripsi Data", "Evaluasi Model", "Prediksi"])
+page = st.sidebar.selectbox("Pilih halaman", ["Deskripsi Data", "Evaluasi Model", "Prediksi", "Anggota Kelompok"])
 
 # ===========================
 # 4. Deskripsi Data
@@ -288,3 +288,20 @@ elif page == "Prediksi":
         ax.set_ylabel("Probabilitas")
         ax.set_ylim(0, 1)
         st.pyplot(fig)
+
+# ===========================
+# 7. Anggota Kelompok
+# ===========================
+elif page == "Anggota Kelompok":
+    st.title("👥 Kelompok 4")
+    st.markdown("""
+    ## Anggota Kelompok:
+
+    1. 👩‍🎓 **Hanny Wahyu Khairuni (2304030050)**  
+    2. 👩‍🎓 **Alya Siti Fathimah (2304030058)**  
+    3. 👨‍🎓 **Alfian Noor Khoeruddin (2304030070)**  
+    4. 👩‍🎓 **Arini Salmah (2304030080)**
+
+    ---
+    📌 *Kelompok ini bertugas dalam proyek analisis prediksi tingkat stres mahasiswa berdasarkan gaya hidup dan performa akademik.*
+    """)
