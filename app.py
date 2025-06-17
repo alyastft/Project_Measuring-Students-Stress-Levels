@@ -214,8 +214,8 @@ elif page == "Evaluasi Model":
     Garis ROC yang bagus akan **mendekati pojok kiri atas**.
 
     **AUC (Area Under Curve)** mengukur luas area di bawah kurva ROC.
-    - Nilai AUC = 1.0 -> sempurna.
-    - Nilai AUC = 0.5 -> sama seperti menebak secara acak.
+    - Nilai AUC = 1.0 artinya sempurna.
+    - Nilai AUC = 0.5 artinya sama seperti menebak secara acak.
 
     📝 **Contoh hasil:**
     - AUC untuk semua kelas (`Low`, `Moderate`, `High`) = **1.00**
