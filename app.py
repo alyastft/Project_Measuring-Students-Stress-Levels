@@ -123,6 +123,39 @@ if page == "Deskripsi Data":
     ax.set_ylabel("")
     st.pyplot(fig)
 
+
+    st.subheader("📈 Korelasi Antar Fitur")
+    st.markdown("""
+    Korelasi digunakan untuk mengetahui hubungan antara fitur gaya hidup dengan **GPA** atau **Stress Level**:
+    
+    - Nilai **positif** → Hubungan searah (jika fitur naik, target naik).
+    - Nilai **negatif** → Hubungan berlawanan (jika fitur naik, target turun).
+    
+    Nilai korelasi mendekati 1 atau -1 menunjukkan hubungan yang kuat.
+    """)
+    fig_corr, ax = plt.subplots(figsize=(10, 6))
+    sns.heatmap(data[features + ["Stress_Level_Encoded"]].corr(), annot=True, cmap="coolwarm", ax=ax)
+    st.pyplot(fig_corr)
+    
+    st.subheader("📊 Distribusi GPA Mahasiswa")
+    fig_gpa, ax = plt.subplots()
+    sns.histplot(data["GPA"], bins=20, kde=True, ax=ax, color="skyblue")
+    ax.set_xlabel("GPA")
+    ax.set_ylabel("Jumlah Mahasiswa")
+    st.pyplot(fig_gpa)
+
+    st.subheader("🛌 Jam Tidur vs Tingkat Stres")
+    st.markdown("Boxplot ini menunjukkan hubungan antara **lama tidur** dan **tingkat stres mahasiswa**.")
+    fig_sleep, ax = plt.subplots()
+    sns.boxplot(x="Stress_Level", y="Sleep_Hours_Per_Day", data=data, palette="Set2", ax=ax)
+    st.pyplot(fig_sleep)
+
+    st.subheader("📚 Jam Belajar vs GPA")
+    st.markdown("Scatterplot untuk melihat apakah semakin banyak jam belajar selalu meningkatkan GPA.")
+    fig_study_gpa, ax = plt.subplots()
+    sns.scatterplot(x="Study_Hours_Per_Day", y="GPA", hue="Stress_Level", data=data, palette="Set1", ax=ax)
+    st.pyplot(fig_study_gpa)
+
 # ===========================
 # 5. Evaluasi Model
 # ===========================
