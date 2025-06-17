@@ -86,7 +86,7 @@ def plot_precision_recall_curve(y_true, y_score, classes):
 
 # Sidebar Navigation
 st.sidebar.title("Navigasi")
-page = st.sidebar.selectbox("Select Page", ["Identity", "Data Description", "Prediction", "About Models"])
+page = st.sidebar.selectbox("Select Page", ["Identity", "Data Description", "About Models", "Prediction"])
 
 # ===================== Halaman Identitas =====================
 if page == "Identity":
@@ -185,6 +185,64 @@ elif page == "Data Description":
     
     st.pyplot(fig_scatter)
 
+# ===================== Halaman About =====================
+# ===================== Halaman About =====================
+elif page == "About Models":
+    st.title("📚 Model dengan XGBoost")
+    
+    st.write("""
+    Model ini menggunakan algoritma **XGBoost Classifier** untuk memprediksi tingkat stres siswa berdasarkan beberapa fitur gaya hidup dan performa akademik.
+
+    ### 📌 Fitur yang Digunakan:
+    - Jumlah jam belajar per hari
+    - Jumlah jam tidur per hari
+    - Aktivitas fisik per hari
+    - Interaksi sosial per hari
+    - Kegiatan ekstrakurikuler
+    - GPA
+    - Status performa akademik (berdasarkan GPA)
+
+    ### ✅ Alasan Memilih XGBoost:
+    - Performa tinggi dan efisien pada dataset tabular
+    - Mampu menangani multiklasifikasi
+    - Memiliki fitur pengendalian overfitting
+    - Mendukung interpretabilitas melalui feature importance
+
+    ### 📈 Evaluasi Awal Model (Menggunakan Data Dummy):
+    """)
+    
+    # Evaluasi dengan data dummy
+    data = load_data()
+    X = data.drop(columns=["Level"])
+    y = data["Level"]
+    classes = [0, 1, 2]
+    class_labels = ["Low", "Moderate", "High"]
+
+    expected_columns = [
+        "Study_Hours_Per_Day",
+        "Extracurricular_Hours_Per_Day",
+        "Sleep_Hours_Per_Day",
+        "Social_Hours_Per_Day",
+        "Physical_Activity_Hours_Per_Day",
+        "GPA",
+        "Academic_Performance_Encoded"
+    ]
+    X = X[expected_columns]
+
+    y_pred = model.predict(X)
+    y_score = model.predict_proba(X)
+
+    st.markdown("#### Confusion Matrix")
+    fig_cm = plot_confusion_matrix(y, y_pred, class_labels)
+    st.pyplot(fig_cm)
+
+    st.markdown("#### ROC Curve")
+    fig_roc = plot_roc_curve(y, y_score, classes)
+    st.pyplot(fig_roc)
+
+    st.markdown("#### Precision-Recall Curve")
+    fig_pr = plot_precision_recall_curve(y, y_score, classes)
+    st.pyplot(fig_pr)
 
 
 # ===================== Halaman Prediction =====================
@@ -293,14 +351,3 @@ elif page == "Prediction":
         except Exception as e:
             st.error(f"An error occurs during prediction: {str(e)}")
 
-# ===================== Halaman About =====================
-elif page == "About Models":
-    st.title("ℹ About This Model")
-    st.write("""
-    This model uses the Stacking Classifier approach to predict students' stress levels. 
-    Stacking is an ensemble machine learning method that combines multiple base and meta models to improve accuracy.
-
-    - Base Model: A combination of several algorithms
-    - Meta Model: Combining the outputs of the base models
-    - Pros: Improves accuracy and generalization
-    """)
