@@ -205,6 +205,7 @@ elif page == "Evaluasi Model":
     ax.set_ylabel("True Positive Rate")
     ax.legend()
     st.pyplot(fig_roc)
+    st.markdown("""
     **ROC Curve** (Receiver Operating Characteristic) menunjukkan hubungan antara:
     
     - **True Positive Rate (Recall)** = Seberapa banyak kasus positif yang terdeteksi dengan benar.
@@ -220,6 +221,7 @@ elif page == "Evaluasi Model":
     - AUC untuk semua kelas (`Low`, `Moderate`, `High`) = **1.00**
     - Artinya model sangat hebat dalam membedakan ketiga tingkat stres.
     """)
+
 
     st.subheader("🧾 Classification Report")
     st.dataframe(pd.DataFrame(classification_report(y, y_pred, target_names=class_labels, output_dict=True)).T)
