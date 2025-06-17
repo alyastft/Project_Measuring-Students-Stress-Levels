@@ -275,6 +275,56 @@ elif page == "Evaluasi Model":
       - `High`: 1029 mahasiswa
     """)
 
+    st.subheader("🧠 Ringkasan Hasil Pelatihan Model")
+    st.markdown("""
+    Model dilatih menggunakan pendekatan **Stacking Classifier**, yaitu menggabungkan beberapa algoritma dasar yang kuat dengan meta-learner.  
+    Berikut adalah detail proses pelatihan model:
+    
+    ---
+    
+    #### 🔢 Dataset:
+    - Jumlah data: **2.000 mahasiswa**
+    - Jumlah fitur: **8 kolom** (gabungan numerik dan kategorik)
+    - Fitur numerik termasuk: **Study, Sleep, GPA, dsb**
+    - Target: `Stress_Level` (Low, Moderate, High)
+    
+    ---
+    
+    #### 📊 Praproses:
+    - Konversi label target menjadi numerik:  
+      `Low = 0`, `Moderate = 1`, `High = 2`
+    - Normalisasi fitur numerik dengan **RobustScaler**
+    - Penyeimbangan kelas target menggunakan **SMOTE (Synthetic Minority Over-sampling Technique)**  
+      > Teknik ini efektif mengatasi dominasi label tertentu (misal `High`) agar model tidak bias.
+    
+    ---
+    
+    #### ⚙️ Arsitektur Model:
+    - **Base Learners**:
+        - Logistic Regression
+        - Decision Tree Classifier
+        - Random Forest Classifier
+        - Support Vector Machine (SVM)
+        - XGBoost Classifier
+    - **Meta-Learner**:
+        - Random Forest Classifier  
+          > Digunakan untuk menggabungkan hasil prediksi dari base learners.
+    
+    ---
+    
+    #### 📈 Evaluasi Training:
+    - **Akurasi Pelatihan**: 100%
+    - **Confusion Matrix**: Semua prediksi benar
+    - **ROC AUC Score**: 1.00 untuk semua kelas
+    - **Classification Report**:
+        - Precision: 1.00
+        - Recall: 1.00
+        - F1-score: 1.00
+    
+    > 💡 Performa sempurna di data pelatihan menunjukkan bahwa model **fit sangat baik**, namun perlu diuji lebih lanjut menggunakan data uji atau validasi silang untuk mengecek kemungkinan **overfitting**.
+    """)
+
+
 # ===========================
 # 6. Prediksi
 # ===========================
