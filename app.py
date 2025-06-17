@@ -93,10 +93,12 @@ elif page == "Evaluasi Model":
     st.title("📈 Evaluasi Model")
 
     X = data[features]
+    X = pd.DataFrame(X, columns=scaler.feature_names_in_)  # ✅ pastikan nama kolom cocok dengan saat scaler.fit
+    X_scaled = scaler.transform(X)
+
     y = data["Stress_Level_Encoded"]
     class_labels = ["Low", "Moderate", "High"]
-
-    X_scaled = scaler.transform(X)
+    
     y_pred = model.predict(X_scaled)
     y_proba = model.predict_proba(X_scaled)
     acc = accuracy_score(y, y_pred)
