@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pickle
 
-from sklearn.preprocessing import RobustScaler
 from sklearn.metrics import (
     accuracy_score, confusion_matrix, ConfusionMatrixDisplay,
     roc_curve, auc, precision_recall_curve, classification_report
@@ -18,18 +17,21 @@ from sklearn.preprocessing import label_binarize
 @st.cache_resource
 def load_model():
     with open("stacking_classifier_model.pkl", "rb") as f:
-        return pickle.load(f)
+        model = pickle.load(f)
+    with open("scaler.pkl", "rb") as f:
+        scaler = pickle.load(f)
+    return model, scaler
 
-model = load_model()
+model, scaler = load_model()
 
 # ===========================
-# 2. Load Real Dataset
+# 2. Load Dataset
 # ===========================
 @st.cache_data
 def load_data():
     df = pd.read_csv("student_lifestyle_dataset.csv")
-    
-    # Label encoding (harus cocok dengan saat training)
+
+    # Encoding sesuai training
     stress_mapping = {'Low': 0, 'Moderate': 1, 'High': 2}
     performance_mapping = {'Poor': 0, 'Fair': 1, 'Good': 2, 'Excellent': 3}
 
@@ -38,7 +40,7 @@ def load_data():
     )
     df['Academic_Performance_Encoded'] = df['Academic_Performance'].map(performance_mapping)
     df['Stress_Level_Encoded'] = df['Stress_Level'].map(stress_mapping)
-    
+
     return df
 
 data = load_data()
@@ -68,8 +70,6 @@ if page == "Identitas":
 # ===========================
 elif page == "Deskripsi Data":
     st.title("📊 Deskripsi Dataset")
-    st.write("Menampilkan distribusi tingkat stres siswa berdasarkan atribut gaya hidup dan akademik.")
-    
     st.dataframe(data.head())
 
     st.subheader("Distribusi Kelas Stress Level")
@@ -97,10 +97,7 @@ elif page == "Evaluasi Model":
     y = data["Stress_Level_Encoded"]
     class_labels = ["Low", "Moderate", "High"]
 
-    # Scaling sesuai model training
-    scaler = RobustScaler()
-    X_scaled = scaler.fit_transform(X)
-
+    X_scaled = scaler.transform(X)
     y_pred = model.predict(X_scaled)
     y_proba = model.predict_proba(X_scaled)
     acc = accuracy_score(y, y_pred)
@@ -110,7 +107,7 @@ elif page == "Evaluasi Model":
 
     st.subheader("📊 Confusion Matrix")
     fig_cm, ax = plt.subplots()
-    disp = ConfusionMatrixDisplay.from_predictions(y, y_pred, display_labels=class_labels, ax=ax)
+    ConfusionMatrixDisplay.from_predictions(y, y_pred, display_labels=class_labels, ax=ax)
     st.pyplot(fig_cm)
 
     st.subheader("📉 ROC Curve")
@@ -158,13 +155,6 @@ elif page == "Prediksi":
         "Academic_Performance_Encoded": performance_encoded
     }])
 
-    # Scaling input user
-    scaler = RobustScaler()
-    X_train = data[[
-        "Study_Hours_Per_Day", "Sleep_Hours_Per_Day", "Physical_Activity_Hours_Per_Day",
-        "Social_Hours_Per_Day", "Extracurricular_Hours_Per_Day", "GPA", "Academic_Performance_Encoded"
-    ]]
-    scaler.fit(X_train)
     input_scaled = scaler.transform(input_df)
 
     if st.button("Prediksi"):
