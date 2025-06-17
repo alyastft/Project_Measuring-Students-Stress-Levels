@@ -4,10 +4,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pickle
-from sklearn.metrics import confusion_matrix, roc_curve, auc, precision_recall_curve, ConfusionMatrixDisplay, accuracy_score
+
+from sklearn.preprocessing import RobustScaler
+from sklearn.metrics import (
+    accuracy_score, confusion_matrix, ConfusionMatrixDisplay,
+    roc_curve, auc, precision_recall_curve, classification_report
+)
 from sklearn.preprocessing import label_binarize
 
-# Fungsi untuk load model
+# ===========================
+# 1. Load Model & Scaler
+# ===========================
 @st.cache_resource
 def load_model():
     with open("stacking_classifier_model.pkl", "rb") as f:
@@ -15,331 +22,161 @@ def load_model():
 
 model = load_model()
 
-# Fungsi untuk load data dummy
+# ===========================
+# 2. Load Real Dataset
+# ===========================
 @st.cache_data
-def load_data(n=300):
-    np.random.seed(42)
-    data = {
-        "Study_Hours_Per_Day": np.random.randint(0, 10, size=n),
-        "Sleep_Hours_Per_Day": np.random.randint(4, 10, size=n),
-        "Physical_Activity_Hours_Per_Day": np.random.randint(0, 5, size=n),
-        "Social_Hours_Per_Day": np.random.randint(0, 6, size=n),
-        "Extracurricular_Hours_Per_Day": np.random.randint(0, 2, size=n),
-        "GPA": np.round(np.random.uniform(2.0, 4.0, size=n), 2),
-    }
-    df = pd.DataFrame(data)
-    df["Academic_Performance_Encoded"] = (df["GPA"] >= 3.0).astype(int)
-    df["Level"] = np.random.randint(0, 3, size=n)
+def load_data():
+    df = pd.read_csv("student_lifestyle_dataset.csv")
+    
+    # Label encoding (harus cocok dengan saat training)
+    stress_mapping = {'Low': 0, 'Moderate': 1, 'High': 2}
+    performance_mapping = {'Poor': 0, 'Fair': 1, 'Good': 2, 'Excellent': 3}
+
+    df['Academic_Performance'] = df['GPA'].apply(
+        lambda x: 'Excellent' if x >= 3.5 else 'Good' if x >= 3.0 else 'Fair' if x >= 2.0 else 'Poor'
+    )
+    df['Academic_Performance_Encoded'] = df['Academic_Performance'].map(performance_mapping)
+    df['Stress_Level_Encoded'] = df['Stress_Level'].map(stress_mapping)
+    
     return df
 
-# Fungsi untuk plotting Confusion Matrix
-def plot_confusion_matrix(y_true, y_pred, classes):
-    cm = confusion_matrix(y_true, y_pred)
-    fig, ax = plt.subplots(figsize=(5, 4))
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=classes)
-    disp.plot(ax=ax, cmap=plt.cm.Blues)
-    plt.title("Confusion Matrix")
-    return fig
+data = load_data()
 
-# Fungsi untuk plotting ROC Curve
-def plot_roc_curve(y_true, y_score, classes):
-    y_test_bin = label_binarize(y_true, classes=classes)
-    n_classes = y_test_bin.shape[1]
-
-    fig, ax = plt.subplots(figsize=(6,5))
-    for i in range(n_classes):
-        fpr, tpr, _ = roc_curve(y_test_bin[:, i], y_score[:, i])
-        roc_auc = auc(fpr, tpr)
-        # Mapping prediksi ke label
-        label_mapping = {0: "Low", 1: "Moderate", 2: "High"}
-        ax.plot(fpr, tpr, lw=2, label=f'{label_mapping.get(classes[i], classes[i])} (AUC = {roc_auc:.2f})')
-        
-    ax.plot([0,1], [0,1], 'k--', lw=2)
-    ax.set_xlim([0,1])
-    ax.set_ylim([0,1.05])
-    ax.set_xlabel('False Positive Rate')
-    ax.set_ylabel('True Positive Rate')
-    ax.set_title('ROC Curve')
-    ax.legend(loc='lower right')
-    return fig
-
-# Fungsi untuk plotting Precision-Recall Curve
-def plot_precision_recall_curve(y_true, y_score, classes):
-    y_test_bin = label_binarize(y_true, classes=classes)
-    n_classes = y_test_bin.shape[1]
-
-    fig, ax = plt.subplots(figsize=(6,5))
-    for i in range(n_classes):
-        precision, recall, _ = precision_recall_curve(y_test_bin[:, i], y_score[:, i])
-        pr_auc = auc(recall, precision)
-        # Mapping prediksi ke label
-        label_mapping = {0: "Low", 1: "Moderate", 2: "High"}
-        ax.plot(recall, precision, lw=2, label=f'{label_mapping.get(classes[i], classes[i])} (AUC = {pr_auc:.2f})')
-
-    ax.set_xlim([0,1])
-    ax.set_ylim([0,1.05])
-    ax.set_xlabel('Recall')
-    ax.set_ylabel('Precision')
-    ax.set_title('Precision-Recall Curve')
-    ax.legend(loc='lower left')
-    return fig
-
-# Sidebar Navigation
+# ===========================
+# 3. Sidebar Navigation
+# ===========================
 st.sidebar.title("Navigasi")
-page = st.sidebar.selectbox("Select Page", ["Identity", "Data Description", "About Models", "Prediction"])
+page = st.sidebar.selectbox("Pilih halaman", ["Identitas", "Deskripsi Data", "Evaluasi Model", "Prediksi"])
 
-# ===================== Halaman Identitas =====================
-if page == "Identity":
-    st.title("👤 User Identity Page")
-
-    # Input nama dan umur
-    nama = st.text_input("Input Your Name:")
-    umur = st.number_input("Input Your Age:", min_value=0, max_value=120, value=20)
-
+# ===========================
+# 4. Halaman Identitas
+# ===========================
+if page == "Identitas":
+    st.title("👤 Halaman Identitas Pengguna")
+    nama = st.text_input("Nama Anda:")
+    umur = st.number_input("Umur Anda:", min_value=5, max_value=100, value=20)
     if nama.strip():
-        st.success(f"Hai {nama}, you're {umur} years old")
-        # Simpan di session state agar bisa digunakan di halaman lain
+        st.success(f"Halo {nama}, umurmu {umur} tahun.")
         st.session_state["nama"] = nama
         st.session_state["umur"] = umur
     else:
-        st.warning("Please input the name first.")
+        st.warning("Silakan isi nama terlebih dahulu.")
 
-# ===================== Halaman Data Description =====================
-elif page == "Data Description":
-    st.title("📊 Students' Stress Level Dataset Description")
-    st.write("""
-    This dataset contains information about student stress levels as measured by:
-    - Study Hours
-    - Sleep Duration
-    - Physical Activity
-    - Social Hours
-    - Extracurricular Activities
-    - GPA
+# ===========================
+# 5. Deskripsi Data
+# ===========================
+elif page == "Deskripsi Data":
+    st.title("📊 Deskripsi Dataset")
+    st.write("Menampilkan distribusi tingkat stres siswa berdasarkan atribut gaya hidup dan akademik.")
     
-    The target variable is Stress Level.
-    """)
+    st.dataframe(data.head())
 
-    data = load_data()
-    
-    # Mapping kolom Level menjadi label kategori
-    label_mapping = {0: "Low", 1: "Moderate", 2: "High"}
-    data["Level"] = data["Level"].map(label_mapping)
+    st.subheader("Distribusi Kelas Stress Level")
+    st.bar_chart(data["Stress_Level"].value_counts())
 
-    st.subheader("Here's the raw data")
-    st.dataframe(data)
-
-    # Tambahkan visualisasi distribusi stress level
-    st.subheader("Class distribution")
-    st.bar_chart(data["Level"].value_counts().reindex(["Low", "Moderate", "High"]))
-
-    # Pie Chart Distribusi Tingkat Stres
-    st.subheader("Distribution of Stress Level (Pie Chart)")
-    stress_counts = data["Level"].value_counts().reindex(["Low", "Moderate", "High"])
-
+    st.subheader("Diagram Pie Stress Level")
     fig, ax = plt.subplots()
-    colors = ["#66b3ff", "#ffcc99", "#ff9999"]  # Warna untuk Low, Moderate, High
-    ax.pie(
-        stress_counts,
-        labels=stress_counts.index,
-        autopct="%1.1f%%",
-        startangle=140,
-        colors=colors,
-        explode=(0.05, 0.05, 0.05),
-        shadow=True,
+    data["Stress_Level"].value_counts().plot.pie(
+        autopct="%1.1f%%", startangle=90, ax=ax, shadow=True, explode=[0.05, 0.05, 0.05]
     )
-    ax.set_title("Distribution of Students' Stress Level")
-    ax.axis("equal")  # Agar lingkarannya proporsional
+    ax.set_ylabel("")
     st.pyplot(fig)
 
-    data = load_data()
-    
-    # Pastikan mapping dilakukan SEBELUM scatter plot
-    label_mapping = {0: "Low", 1: "Moderate", 2: "High"}
-    data["Level"] = data["Level"].map(label_mapping)
-    
-    # Cek isi data
-    st.write("🔍 Debugging Data Sample:", data.head())
-    
-    # Scatter plot
-    st.subheader("Scatter Plot: GPA vs Study Hours")
-    fig_scatter, ax = plt.subplots()
-    
-    colors = {"Low": "#66b3ff", "Moderate": "#ffcc99", "High": "#ff9999"}
-    
-    for level in ["Low", "Moderate", "High"]:
-        subset = data[data["Level"] == level]
-        ax.scatter(
-            subset["Study_Hours_Per_Day"],
-            subset["GPA"],
-            label=level,
-            alpha=0.7,
-            edgecolors='k',
-            s=80,
-            c=colors[level]
-        )
-    
-    ax.set_xlabel("Study Hours Per Day")
-    ax.set_ylabel("GPA")
-    ax.set_title("Relationship between Study Hours and GPA based on Stress Levels")
-    ax.legend(title="Stress Level")
-    
-    st.pyplot(fig_scatter)
+# ===========================
+# 6. Evaluasi Model
+# ===========================
+elif page == "Evaluasi Model":
+    st.title("📈 Evaluasi Model Stacking Classifier")
 
-# ===================== Halaman About =====================
-elif page == "About Models":
-    st.title("📚 Model dengan Stacking Classifier")
-
-    st.write("""
-    Model ini menggunakan algoritma **Stacking Classifier** untuk memprediksi tingkat stres siswa berdasarkan beberapa fitur gaya hidup dan performa akademik.
-
-    ### 📌 Fitur yang Digunakan:
-    - Jumlah jam belajar per hari
-    - Jumlah jam tidur per hari
-    - Aktivitas fisik per hari
-    - Interaksi sosial per hari
-    - Kegiatan ekstrakurikuler
-    - GPA
-    - Status performa akademik (berdasarkan GPA)
-
-    ### ✅ Alasan Memilih Stacking Classifier:
-    - Menggabungkan beberapa model kuat untuk meningkatkan akurasi
-    - Lebih stabil dibandingkan model tunggal
-    - Mengurangi kelemahan masing-masing model base learner
-    - Cocok untuk data tabular multiklasifikasi
-
-    ### 📈 Evaluasi Model:
-    """)
-
-    # Load data & model
-    data = load_data()  # pastikan fungsi load_data() tersedia
-    with open("stacking_classifier_model.pkl", "rb") as f:
-        model = pickle.load(f)
-
-    # Persiapkan data
-    X = data.drop(columns=["Level"])
-    y = data["Level"]
-    class_labels = ["Low", "Moderate", "High"]
-    classes = [0, 1, 2]
-
-    expected_columns = [
-        "Study_Hours_Per_Day",
-        "Extracurricular_Hours_Per_Day",
-        "Sleep_Hours_Per_Day",
-        "Social_Hours_Per_Day",
-        "Physical_Activity_Hours_Per_Day",
-        "GPA",
-        "Academic_Performance_Encoded"
+    features = [
+        "Study_Hours_Per_Day", "Sleep_Hours_Per_Day", "Physical_Activity_Hours_Per_Day",
+        "Social_Hours_Per_Day", "Extracurricular_Hours_Per_Day", "GPA", "Academic_Performance_Encoded"
     ]
-    X = X[expected_columns]
+    X = data[features]
+    y = data["Stress_Level_Encoded"]
+    class_labels = ["Low", "Moderate", "High"]
 
-    # Prediksi dan evaluasi
-    y_pred = model.predict(X)
-    y_score = model.predict_proba(X)
-    accuracy = accuracy_score(y, y_pred)
+    # Scaling sesuai model training
+    scaler = RobustScaler()
+    X_scaled = scaler.fit_transform(X)
 
-    # Tampilkan akurasi
-    st.markdown("### 🎯 Akurasi Model")
-    st.success(f"{accuracy * 100:.2f}%")
+    y_pred = model.predict(X_scaled)
+    y_proba = model.predict_proba(X_scaled)
+    acc = accuracy_score(y, y_pred)
 
-    # Confusion Matrix
-    st.markdown("### 📊 Confusion Matrix")
-    fig_cm = plot_confusion_matrix(y, y_pred, class_labels)
+    st.subheader("🎯 Akurasi Model")
+    st.success(f"Akurasi: {acc * 100:.2f}%")
+
+    st.subheader("📊 Confusion Matrix")
+    fig_cm, ax = plt.subplots()
+    disp = ConfusionMatrixDisplay.from_predictions(y, y_pred, display_labels=class_labels, ax=ax)
     st.pyplot(fig_cm)
 
-    # ROC Curve
-    st.markdown("### 📉 ROC Curve")
-    fig_roc = plot_roc_curve(y, y_score, classes)
+    st.subheader("📉 ROC Curve")
+    y_bin = label_binarize(y, classes=[0, 1, 2])
+    fig_roc, ax = plt.subplots()
+    for i in range(3):
+        fpr, tpr, _ = roc_curve(y_bin[:, i], y_proba[:, i])
+        roc_auc = auc(fpr, tpr)
+        ax.plot(fpr, tpr, label=f"{class_labels[i]} (AUC = {roc_auc:.2f})")
+    ax.plot([0, 1], [0, 1], "k--")
+    ax.set_xlabel("False Positive Rate")
+    ax.set_ylabel("True Positive Rate")
+    ax.legend()
     st.pyplot(fig_roc)
 
-    # Precision-Recall Curve
-    st.markdown("### 🧪 Precision-Recall Curve")
-    fig_pr = plot_precision_recall_curve(y, y_score, classes)
-    st.pyplot(fig_pr)
+    st.subheader("🧾 Classification Report")
+    st.dataframe(pd.DataFrame(classification_report(y, y_pred, target_names=class_labels, output_dict=True)).T)
 
-    # Classification Report
-    st.markdown("### 📄 Classification Report")
-    from sklearn.metrics import classification_report
-    report = classification_report(y, y_pred, target_names=class_labels, output_dict=True)
-    st.dataframe(pd.DataFrame(report).transpose().style.format("{:.2f}"))
+# ===========================
+# 7. Halaman Prediksi
+# ===========================
+elif page == "Prediksi":
+    st.title("🔮 Prediksi Tingkat Stres")
 
+    if "nama" in st.session_state:
+        st.info(f"Prediksi untuk: {st.session_state['nama']} ({st.session_state['umur']} tahun)")
 
+    study = st.slider("Jam Belajar per Hari", 0, 12, 4)
+    sleep = st.slider("Jam Tidur per Hari", 0, 12, 7)
+    activity = st.slider("Aktivitas Fisik per Hari", 0, 5, 2)
+    social = st.slider("Jam Sosialisasi per Hari", 0, 6, 2)
+    extracurricular = st.selectbox("Ikut Ekstrakurikuler?", ["Ya", "Tidak"])
+    gpa = st.number_input("GPA", 0.0, 4.0, 3.2)
 
-# ===================== Halaman Prediction =====================
-elif page == "Prediction":
-    st.title("📈 Predicted Stress Level")
+    academic_perf = 'Excellent' if gpa >= 3.5 else 'Good' if gpa >= 3.0 else 'Fair' if gpa >= 2.0 else 'Poor'
+    performance_encoded = {'Poor': 0, 'Fair': 1, 'Good': 2, 'Excellent': 3}[academic_perf]
 
-    if "nama" in st.session_state and "umur" in st.session_state:
-        st.info(f"Prediction for: {st.session_state['nama']}, {st.session_state['umur']} years old")
-    else:
-        st.warning("Please fill in your identity first on the Identity page.")
+    input_df = pd.DataFrame([{
+        "Study_Hours_Per_Day": study,
+        "Sleep_Hours_Per_Day": sleep,
+        "Physical_Activity_Hours_Per_Day": activity,
+        "Social_Hours_Per_Day": social,
+        "Extracurricular_Hours_Per_Day": 1 if extracurricular == "Ya" else 0,
+        "GPA": gpa,
+        "Academic_Performance_Encoded": performance_encoded
+    }])
 
-    st.write("Enter the following information to predict stress levels:")
+    # Scaling input user
+    scaler = RobustScaler()
+    X_train = data[[
+        "Study_Hours_Per_Day", "Sleep_Hours_Per_Day", "Physical_Activity_Hours_Per_Day",
+        "Social_Hours_Per_Day", "Extracurricular_Hours_Per_Day", "GPA", "Academic_Performance_Encoded"
+    ]]
+    scaler.fit(X_train)
+    input_scaled = scaler.transform(input_df)
 
-    study_hours = st.slider("Study Hours per Day", 0, 12, 4)
-    sleep_duration = st.slider("Sleep Duration per Day (hours)", 0, 12, 7)
-    physical_activity = st.slider("Physical Activity (hours/week)", 0, 20, 3)
-    social_hours = st.slider("Social Hours per Day", 0, 12, 2)
-    extracurricular = st.selectbox("Participate in extracurricular activities?", ["Yes", "No"])
-    gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, value=3.0)
-
-    # Konversi ekstrakurikuler ke binary
-    extracurricular_binary = 1 if extracurricular == "Yes" else 0
-
-    input_data = pd.DataFrame([{
-    "Study_Hours_Per_Day": study_hours,
-    "Sleep_Hours_Per_Day": sleep_duration,
-    "Physical_Activity_Hours_Per_Day": physical_activity,
-    "Social_Hours_Per_Day": social_hours,
-    "Extracurricular_Hours_Per_Day": extracurricular_binary,
-    "GPA": gpa,
-    "Academic_Performance_Encoded": 1 if gpa >= 3.0 else 0  # atau sesuai logika yang dipakai saat training
-}])
-
-    expected_columns = [
-    "Study_Hours_Per_Day",
-    "Extracurricular_Hours_Per_Day",
-    "Sleep_Hours_Per_Day",
-    "Social_Hours_Per_Day",
-    "Physical_Activity_Hours_Per_Day",
-    "GPA",
-    "Academic_Performance_Encoded"
-    ]
-    input_data = input_data[expected_columns]
-
-    input_data = input_data.astype({
-    "Study_Hours_Per_Day": int,
-    "Sleep_Hours_Per_Day": int,
-    "Physical_Activity_Hours_Per_Day": int,
-    "Social_Hours_Per_Day": int,
-    "Extracurricular_Hours_Per_Day": int,
-    "GPA": float,
-    "Academic_Performance_Encoded": int
-})
-
-    # Tombol Prediksi
     if st.button("Prediksi"):
-        try:
-            prediction = model.predict(input_data)[0]
-            probability = model.predict_proba(input_data)[0]
-    
-            # Mapping prediksi ke label
-            label_mapping = {0: "Low", 1: "Moderate", 2: "High"}
-            predicted_label = label_mapping.get(prediction, "Unknown")
-    
-            if "nama" in st.session_state:
-                st.success(f"{st.session_state['nama']}, your stress levels are predicted: **{predicted_label}**")
-            else:
-                st.success(f"Stress level predicted: **{predicted_label}**")
-    
-            # Tambahkan visualisasi probabilitas (opsional)
-            import matplotlib.pyplot as plt
-    
-            st.markdown("### 🔍 Prediction Confidence")
-            fig, ax = plt.subplots()
-            ax.bar(label_mapping.values(), probability, color=['green', 'orange', 'red'])
-            ax.set_ylabel("Confidence")
-            ax.set_ylim(0, 1)
-            st.pyplot(fig)
-    
-        except Exception as e:
-            st.error(f"An error occurs during prediction: {str(e)}")
+        pred = model.predict(input_scaled)[0]
+        prob = model.predict_proba(input_scaled)[0]
+        label = {0: "Low", 1: "Moderate", 2: "High"}[pred]
+
+        st.success(f"Tingkat stres diprediksi: **{label}**")
+
+        st.subheader("📊 Probabilitas Prediksi")
+        fig, ax = plt.subplots()
+        ax.bar(["Low", "Moderate", "High"], prob, color=["green", "orange", "red"])
+        ax.set_ylabel("Probabilitas")
+        ax.set_ylim(0, 1)
+        st.pyplot(fig)
