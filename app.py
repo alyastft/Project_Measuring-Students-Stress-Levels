@@ -157,6 +157,9 @@ elif page == "Prediksi":
         "Academic_Performance_Encoded": performance_encoded
     }])[features]  # ⬅️ pastikan urutan kolom sama persis
 
+    # Samakan kolom input dengan yang digunakan saat training
+    input_df = pd.DataFrame(input_df, columns=scaler.feature_names_in_)
+
     input_scaled = scaler.transform(input_df)
 
     if st.button("Prediksi"):
