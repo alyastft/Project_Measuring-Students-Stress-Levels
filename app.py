@@ -360,6 +360,9 @@ elif page == "Prediksi":
     input_scaled = scaler.transform(input_df)
 
     if st.button("Prediksi"):
+    if not nama.strip():
+        st.error("❌ Mohon isi nama terlebih dahulu sebelum melakukan prediksi.")
+    else:
         pred = model.predict(input_scaled)[0]
         prob = model.predict_proba(input_scaled)[0]
         label = {0: "Low", 1: "Moderate", 2: "High"}[pred]
