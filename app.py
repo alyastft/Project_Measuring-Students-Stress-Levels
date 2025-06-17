@@ -360,21 +360,21 @@ elif page == "Prediksi":
     input_scaled = scaler.transform(input_df)
 
     if st.button("Prediksi"):
-    if not nama.strip():
-        st.error("❌ Mohon isi nama terlebih dahulu sebelum melakukan prediksi.")
-    else:
-        pred = model.predict(input_scaled)[0]
-        prob = model.predict_proba(input_scaled)[0]
-        label = {0: "Low", 1: "Moderate", 2: "High"}[pred]
-
-        st.success(f"Hai {nama} (umur {umur}), tingkat stresmu diprediksi: **{label}**")
-
-        st.subheader("📊 Probabilitas Prediksi")
-        fig, ax = plt.subplots()
-        ax.bar(["Low", "Moderate", "High"], prob, color=["green", "orange", "red"])
-        ax.set_ylabel("Probabilitas")
-        ax.set_ylim(0, 1)
-        st.pyplot(fig)
+        if nama.strip() == "":
+            st.error("❌ Mohon isi nama terlebih dahulu sebelum melakukan prediksi.")
+        else:
+            pred = model.predict(input_scaled)[0]
+            prob = model.predict_proba(input_scaled)[0]
+            label = {0: "Low", 1: "Moderate", 2: "High"}[pred]
+    
+            st.success(f"Hai {nama} (umur {umur}), tingkat stresmu diprediksi: **{label}**")
+    
+            st.subheader("📊 Probabilitas Prediksi")
+            fig, ax = plt.subplots()
+            ax.bar(["Low", "Moderate", "High"], prob, color=["green", "orange", "red"])
+            ax.set_ylabel("Probabilitas")
+            ax.set_ylim(0, 1)
+            st.pyplot(fig)
 
 # ===========================
 # 7. Anggota Kelompok
