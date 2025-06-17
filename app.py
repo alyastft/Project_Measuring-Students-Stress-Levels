@@ -186,12 +186,11 @@ elif page == "Data Description":
     st.pyplot(fig_scatter)
 
 # ===================== Halaman About =====================
-# ===================== Halaman About =====================
 elif page == "About Models":
-    st.title("📚 Model dengan XGBoost")
-    
+    st.title("📚 Model dengan Stacking Classifier")
+
     st.write("""
-    Model ini menggunakan algoritma **XGBoost Classifier** untuk memprediksi tingkat stres siswa berdasarkan beberapa fitur gaya hidup dan performa akademik.
+    Model ini menggunakan algoritma **Stacking Classifier** untuk memprediksi tingkat stres siswa berdasarkan beberapa fitur gaya hidup dan performa akademik.
 
     ### 📌 Fitur yang Digunakan:
     - Jumlah jam belajar per hari
@@ -202,21 +201,25 @@ elif page == "About Models":
     - GPA
     - Status performa akademik (berdasarkan GPA)
 
-    ### ✅ Alasan Memilih XGBoost:
-    - Performa tinggi dan efisien pada dataset tabular
-    - Mampu menangani multiklasifikasi
-    - Memiliki fitur pengendalian overfitting
-    - Mendukung interpretabilitas melalui feature importance
+    ### ✅ Alasan Memilih Stacking Classifier:
+    - Menggabungkan beberapa model kuat untuk meningkatkan akurasi
+    - Lebih stabil dibandingkan model tunggal
+    - Mengurangi kelemahan masing-masing model base learner
+    - Cocok untuk data tabular multiklasifikasi
 
-    ### 📈 Evaluasi Awal Model (Menggunakan Data Dummy):
+    ### 📈 Evaluasi Model:
     """)
-    
-    # Evaluasi dengan data dummy
-    data = load_data()
+
+    # Load data & model
+    data = load_data()  # pastikan fungsi load_data() tersedia
+    with open("stacking_classifier_model.pkl", "rb") as f:
+        model = pickle.load(f)
+
+    # Persiapkan data
     X = data.drop(columns=["Level"])
     y = data["Level"]
-    classes = [0, 1, 2]
     class_labels = ["Low", "Moderate", "High"]
+    classes = [0, 1, 2]
 
     expected_columns = [
         "Study_Hours_Per_Day",
@@ -229,20 +232,36 @@ elif page == "About Models":
     ]
     X = X[expected_columns]
 
+    # Prediksi dan evaluasi
     y_pred = model.predict(X)
     y_score = model.predict_proba(X)
+    accuracy = accuracy_score(y, y_pred)
 
-    st.markdown("#### Confusion Matrix")
+    # Tampilkan akurasi
+    st.markdown("### 🎯 Akurasi Model")
+    st.success(f"{accuracy * 100:.2f}%")
+
+    # Confusion Matrix
+    st.markdown("### 📊 Confusion Matrix")
     fig_cm = plot_confusion_matrix(y, y_pred, class_labels)
     st.pyplot(fig_cm)
 
-    st.markdown("#### ROC Curve")
+    # ROC Curve
+    st.markdown("### 📉 ROC Curve")
     fig_roc = plot_roc_curve(y, y_score, classes)
     st.pyplot(fig_roc)
 
-    st.markdown("#### Precision-Recall Curve")
+    # Precision-Recall Curve
+    st.markdown("### 🧪 Precision-Recall Curve")
     fig_pr = plot_precision_recall_curve(y, y_score, classes)
     st.pyplot(fig_pr)
+
+    # Classification Report
+    st.markdown("### 📄 Classification Report")
+    from sklearn.metrics import classification_report
+    report = classification_report(y, y_pred, target_names=class_labels, output_dict=True)
+    st.dataframe(pd.DataFrame(report).transpose().style.format("{:.2f}"))
+
 
 
 # ===================== Halaman Prediction =====================
@@ -301,53 +320,26 @@ elif page == "Prediction":
     if st.button("Prediksi"):
         try:
             prediction = model.predict(input_data)[0]
-            
+            probability = model.predict_proba(input_data)[0]
+    
             # Mapping prediksi ke label
             label_mapping = {0: "Low", 1: "Moderate", 2: "High"}
             predicted_label = label_mapping.get(prediction, "Unknown")
-
+    
             if "nama" in st.session_state:
                 st.success(f"{st.session_state['nama']}, your stress levels are predicted: **{predicted_label}**")
             else:
                 st.success(f"Stress level predicted: **{predicted_label}**")
-
-            # Evaluasi model
-            st.markdown("---")
-            st.subheader("Evaluation of Models with Dummy Data")
-
-            data = load_data()
-            X = data.drop(columns=["Level"])
-            y = data["Level"]
-            classes = [0, 1, 2]
-            class_labels = ["Low", "Moderate", "High"]
-
-
-            expected_columns = [
-                "Study_Hours_Per_Day",
-                "Extracurricular_Hours_Per_Day",
-                "Sleep_Hours_Per_Day",
-                "Social_Hours_Per_Day",
-                "Physical_Activity_Hours_Per_Day",
-                "GPA",
-                "Academic_Performance_Encoded"
-            ]
-            X = X[expected_columns]
-            
-            y_pred = model.predict(X)
-            y_score = model.predict_proba(X)
-
-            st.markdown("Confusion Matrix")
-            fig_cm = plot_confusion_matrix(y, y_pred, class_labels)
-            st.pyplot(fig_cm)
-
-            st.markdown("ROC Curve")
-            fig_roc = plot_roc_curve(y, y_score, classes)
-            st.pyplot(fig_roc)
-
-            st.markdown("Precision-Recall Curve")
-            fig_pr = plot_precision_recall_curve(y, y_score, classes)
-            st.pyplot(fig_pr)
-
+    
+            # Tambahkan visualisasi probabilitas (opsional)
+            import matplotlib.pyplot as plt
+    
+            st.markdown("### 🔍 Prediction Confidence")
+            fig, ax = plt.subplots()
+            ax.bar(label_mapping.values(), probability, color=['green', 'orange', 'red'])
+            ax.set_ylabel("Confidence")
+            ax.set_ylim(0, 1)
+            st.pyplot(fig)
+    
         except Exception as e:
             st.error(f"An error occurs during prediction: {str(e)}")
-
