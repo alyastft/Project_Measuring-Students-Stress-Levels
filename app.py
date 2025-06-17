@@ -89,7 +89,30 @@ if page == "Deskripsi Data":
     st.dataframe(data.head())
 
     st.subheader("Distribusi Kelas Stress Level")
+    st.markdown("""
+    ### 📊 Penjelasan Distribusi Kelas Stress Level
+    
+    Distribusi ini menunjukkan **jumlah mahasiswa** dalam setiap kategori stres:
+    
+    - 🟢 **Low**: Mahasiswa yang memiliki gaya hidup seimbang—cukup tidur, waktu belajar moderat, dan aktif secara fisik & sosial.
+    - 🟡 **Moderate**: Umumnya memiliki tekanan akademik atau waktu belajar tinggi, namun masih menjaga keseimbangan aktivitas lainnya.
+    - 🔴 **High**: Cenderung disebabkan oleh jam belajar berlebihan, kurang tidur, dan minim aktivitas sosial atau fisik.
+    
+    Distribusi kelas ini penting karena:
+    - Memberi gambaran apakah data seimbang atau tidak.
+    - Mempengaruhi performa model prediksi (model bisa bias jika mayoritas data berasal dari satu kelas).
+    
+    💡 Jika proporsi kelas tidak seimbang (misalnya sebagian besar Moderate), teknik seperti **SMOTE** digunakan saat training untuk menyeimbangkan data.
+    """)
     st.bar_chart(data["Stress_Level"].value_counts())
+    st.markdown("""
+    Distribusi ini menunjukkan jumlah mahasiswa yang tergolong dalam tiga tingkat stress:
+    - **High** (Tinggi): 1029 mahasiswa (**51.5%**)
+    - **Moderate** (Sedang): 674 mahasiswa (**33.7%**)
+    - **Low** (Rendah): 297 mahasiswa (**14.9%**)
+    
+    Distribusi ini menunjukkan bahwa **lebih dari setengah mahasiswa mengalami stres tinggi**, yang mungkin berkaitan dengan tekanan akademik, kurang tidur, atau kebiasaan gaya hidup yang tidak seimbang.
+    """)
 
     st.subheader("Diagram Pie Stress Level")
     fig, ax = plt.subplots()
