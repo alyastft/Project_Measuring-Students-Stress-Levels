@@ -424,5 +424,4 @@ elif page == "Anggota Kelompok":
     2. 👩‍🎓 **Alya Siti Fathimah (2304030058)**  
     3. 👨‍🎓 **Alfian Noor Khoeruddin (2304030070)**  
     4. 👩‍🎓 **Arini Salmah (2304030080)**
-    5.
     """)
