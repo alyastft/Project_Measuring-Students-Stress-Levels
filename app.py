@@ -68,9 +68,9 @@ features = [
 ]
 
 # ===========================
-# 3. Sidebar Navigation
+# 3. Sidebar Dashboard
 # ===========================
-st.sidebar.title("Navigasi")
+st.sidebar.title("Dashboard")
 page = st.sidebar.selectbox("Pilih halaman", ["Deskripsi Data", "Evaluasi Model", "Prediksi", "Anggota Kelompok"])
 st.sidebar.write(f"Halaman terpilih: `{page}`")
 
