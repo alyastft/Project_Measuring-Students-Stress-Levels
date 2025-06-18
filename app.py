@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pickle
+import os
 
 from sklearn.metrics import (
     accuracy_score, confusion_matrix, ConfusionMatrixDisplay,
@@ -16,30 +17,48 @@ from sklearn.preprocessing import label_binarize
 # ===========================
 @st.cache_resource
 def load_model_and_scaler():
-    with open("stacking_classifier_model.pkl", "rb") as f:
-        model = pickle.load(f)
-    with open("scaler.pkl", "rb") as f:
-        scaler = pickle.load(f)
-    return model, scaler
+    model_dir = "models"
+    model_path = os.path.join(model_dir, "stacking_classifier_model.joblib")
+    scaler_path = os.path.join(model_dir, "scaler.joblib")
+
+    try:
+        if not os.path.exists(model_dir):
+            os.makedirs(model_dir)
+            st.warning(f"Directory '{model_dir}' created. Please place your model and scaler files inside.")
+            st.stop()
+
+        model = joblib.load(model_path)
+        scaler = joblib.load(scaler_path)
+        return model, scaler
+    except FileNotFoundError:
+        st.error(f"Error: Model or scaler files not found in '{model_dir}' directory.")
+        st.stop()
+    except Exception as e:
+        st.error(f"Error loading model or scaler: {e}")
+        st.stop()
 
 model, scaler = load_model_and_scaler()
 
-# ===========================
-# 2. Load Dataset
-# ===========================
 @st.cache_data
 def load_data():
-    df = pd.read_csv("student_lifestyle_dataset.csv")
-    stress_mapping = {'Low': 0, 'Moderate': 1, 'High': 2}
-    performance_mapping = {'Poor': 0, 'Fair': 1, 'Good': 2, 'Excellent': 3}
+    try:
+        df = pd.read_csv("student_lifestyle_dataset.csv")
+        stress_mapping = {'Low': 0, 'Moderate': 1, 'High': 2}
+        performance_mapping = {'Poor': 0, 'Fair': 1, 'Good': 2, 'Excellent': 3}
 
-    df['Academic_Performance'] = df['GPA'].apply(
-        lambda x: 'Excellent' if x >= 3.5 else 'Good' if x >= 3.0 else 'Fair' if x >= 2.0 else 'Poor'
-    )
-    df['Academic_Performance_Encoded'] = df['Academic_Performance'].map(performance_mapping)
-    df['Stress_Level_Encoded'] = df['Stress_Level'].map(stress_mapping)
-    
-    return df
+        df['Academic_Performance'] = df['GPA'].apply(
+            lambda x: 'Excellent' if x >= 3.5 else 'Good' if x >= 3.0 else 'Fair' if x >= 2.0 else 'Poor'
+        )
+        df['Academic_Performance_Encoded'] = df['Academic_Performance'].map(performance_mapping)
+        df['Stress_Level_Encoded'] = df['Stress_Level'].map(stress_mapping)
+
+        return df
+    except FileNotFoundError:
+        st.error("Error: Dataset file 'student_lifestyle_dataset.csv' not found. Please ensure it's in the same directory as the Streamlit app.")
+        st.stop()
+    except Exception as e:
+        st.error(f"Error loading data: {e}")
+        st.stop()
 
 data = load_data()
 
