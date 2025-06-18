@@ -335,12 +335,6 @@ elif page == "Evaluasi Model":
 # ===========================
 elif page == "Prediksi":
     st.title("🔮 Prediksi Tingkat Stres Mahasiswa")
-    st.markdown("""
-    ### Masukkan data gaya hidup dan akademik mahasiswa untuk memprediksi tingkat stres.
-    """)
-
-    # Input fields for user
-    st.subheader("Masukkan Atribut Gaya Hidup dan Akademik:")
     nama = st.text_input("Nama Anda:")
     umur = st.number_input("Umur Anda:", min_value=5, max_value=100, value=20)
 
@@ -350,7 +344,7 @@ elif page == "Prediksi":
     social_hours = st.slider("Jam Interaksi Sosial Per Hari", 0.0, 6.0, 2.0)
     extracurricular_input = st.selectbox("Ikut Ekstrakurikuler?", ["Ya", "Tidak"])
     extracurricular_hours = 1 if extracurricular_input == "Ya" else 0
-    gpa = st.slider("IPK", 0.0, 4.0, 3.0)
+    gpa = st.number_input("IPK:", min_value=0.0, max_value= 4.0, value= 3.0)
 
     # Encode Academic_Performance based on GPA for prediction
     def encode_academic_performance(gpa_val):
